@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-innov-yellow: #FADB58;
+  --color-innov-blue: #38B6FF;
+  --color-innov-blue-dark: #0B3B60;
+  --color-innov-blue-navy: #08233C;
+  --color-innov-slate: #1E293B;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom scrollbar and accessibility helper styles */
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+.text-size-large {
+  font-size: 18px;
+}
+
+.text-size-xlarge {
+  font-size: 20px;
+}
+
