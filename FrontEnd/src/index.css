@@ -9,17 +9,26 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
-/* Custom scrollbar and accessibility helper styles */
-html {
-  scroll-behavior: smooth;
-  font-size: 16px;
+/* Custom subtle scrollbar for admin sidebar and scrollable elements */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(20, 184, 166, 0.35) transparent;
 }
 
-.text-size-large {
-  font-size: 18px;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
 }
 
-.text-size-xlarge {
-  font-size: 20px;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(20, 184, 166, 0.3);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(20, 184, 166, 0.6);
 }
 

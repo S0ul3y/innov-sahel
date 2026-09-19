@@ -93,115 +93,113 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   ];
 
   const sidebarContent = (
-    <div className="h-full flex flex-col justify-between bg-[#062326] text-white border-r border-[#0E3A3E] select-none">
-      {/* Top section: Brand Logo & Title */}
-      <div>
-        <div className="p-6 border-b border-[#0E3A3E] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-[#062326] shadow-lg shadow-emerald-900/30">
-              <Sparkles className="w-5 h-5 font-black" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-black text-base tracking-wide text-white">INNOVSAHEL</span>
-                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">
-                  Admin
-                </span>
-              </div>
-              <p className="text-[11px] text-teal-300/70 font-medium">
-                District de Bamako • 6 Communes
-              </p>
-            </div>
+    <div className="h-full flex flex-col bg-[#062326] text-white border-r border-[#0E3A3E] select-none overflow-y-auto overflow-x-hidden custom-scrollbar overscroll-contain">
+      {/* Top section: Brand Logo & Title (Sticky Header) */}
+      <div className="p-6 border-b border-[#0E3A3E] flex items-center justify-between sticky top-0 bg-[#062326] z-10 flex-shrink-0 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-[#062326] shadow-lg shadow-emerald-900/30">
+            <Sparkles className="w-5 h-5 font-black" />
           </div>
-
-          {onCloseMobile && (
-            <button
-              onClick={onCloseMobile}
-              className="lg:hidden p-2 text-teal-300 hover:text-white rounded-xl hover:bg-white/5 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-base tracking-wide text-white">INNOVSAHEL</span>
+              <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">
+                Admin
+              </span>
+            </div>
+            <p className="text-[11px] text-teal-300/70 font-medium">
+              District de Bamako • 6 Communes
+            </p>
+          </div>
         </div>
 
-        {/* Navigation list */}
-        <div className="p-4 space-y-6">
-          <div>
-            <span className="px-3 text-[10px] font-black uppercase tracking-widest text-teal-400/60 block mb-2">
-              Menu Principal
-            </span>
-            <nav className="space-y-1.5" aria-label="Navigation administration">
-              {navItems.map(item => {
-                const isActive = currentTab === item.id;
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    id={`admin-nav-${item.id}`}
-                    onClick={() => {
-                      onSelectTab(item.id);
-                      if (onCloseMobile) onCloseMobile();
-                    }}
-                    className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-left font-bold transition-all duration-200 group cursor-pointer ${
-                      isActive
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-[#062326] shadow-lg shadow-emerald-950/40 font-black'
-                        : 'text-teal-100/80 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
-                        isActive 
-                          ? 'bg-[#062326]/20 text-[#062326]' 
-                          : 'bg-white/5 text-teal-300 group-hover:bg-white/10 group-hover:text-white'
-                      }`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="text-xs sm:text-sm block leading-tight">{item.label}</span>
-                        <span className={`text-[10px] font-medium block leading-tight ${
-                          isActive ? 'text-[#062326]/80' : 'text-teal-400/50'
-                        }`}>
-                          {item.description}
-                        </span>
-                      </div>
+        {onCloseMobile && (
+          <button
+            onClick={onCloseMobile}
+            className="lg:hidden p-2 text-teal-300 hover:text-white rounded-xl hover:bg-white/5 cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      {/* Navigation list */}
+      <div className="p-4 space-y-6 flex-shrink-0">
+        <div>
+          <span className="px-3 text-[10px] font-black uppercase tracking-widest text-teal-400/60 block mb-2">
+            Menu Principal
+          </span>
+          <nav className="space-y-1.5" aria-label="Navigation administration">
+            {navItems.map(item => {
+              const isActive = currentTab === item.id;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  id={`admin-nav-${item.id}`}
+                  onClick={() => {
+                    onSelectTab(item.id);
+                    if (onCloseMobile) onCloseMobile();
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-left font-bold transition-all duration-200 group cursor-pointer ${
+                    isActive
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-[#062326] shadow-lg shadow-emerald-950/40 font-black'
+                      : 'text-teal-100/80 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                      isActive 
+                        ? 'bg-[#062326]/20 text-[#062326]' 
+                        : 'bg-white/5 text-teal-300 group-hover:bg-white/10 group-hover:text-white'
+                    }`}>
+                      <Icon className="w-4 h-4" />
                     </div>
-
-                    {item.badge && (
-                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${item.badgeColor || 'bg-emerald-400 text-[#062326]'}`}>
-                        {item.badge}
+                    <div>
+                      <span className="text-xs sm:text-sm block leading-tight">{item.label}</span>
+                      <span className={`text-[10px] font-medium block leading-tight ${
+                        isActive ? 'text-[#062326]/80' : 'text-teal-400/50'
+                      }`}>
+                        {item.description}
                       </span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+                    </div>
+                  </div>
 
-          {/* Quick Platform Action (Link to Citizen space) */}
-          <div className="pt-2 border-t border-[#0E3A3E]">
-            <span className="px-3 text-[10px] font-black uppercase tracking-widest text-teal-400/60 block mb-2">
-              Accès Public
-            </span>
-            <button
-              id="admin-go-to-platform"
-              onClick={() => setActiveTab('accueil')}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#092D30] hover:bg-[#0C3B3F] text-emerald-300 hover:text-emerald-200 border border-emerald-500/20 transition-all text-xs font-bold cursor-pointer group"
-            >
-              <div className="flex items-center gap-2.5">
-                <Globe className="w-4 h-4 text-emerald-400" />
-                <div className="text-left">
-                  <span className="block leading-tight text-white">Aller sur la plateforme</span>
-                  <span className="text-[10px] text-teal-300/70 block leading-tight">Espace citoyen Bamako</span>
-                </div>
+                  {item.badge && (
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${item.badgeColor || 'bg-emerald-400 text-[#062326]'}`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Quick Platform Action (Link to Citizen space) */}
+        <div className="pt-2 border-t border-[#0E3A3E]">
+          <span className="px-3 text-[10px] font-black uppercase tracking-widest text-teal-400/60 block mb-2">
+            Accès Public
+          </span>
+          <button
+            id="admin-go-to-platform"
+            onClick={() => setActiveTab('accueil')}
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#092D30] hover:bg-[#0C3B3F] text-emerald-300 hover:text-emerald-200 border border-emerald-500/20 transition-all text-xs font-bold cursor-pointer group"
+          >
+            <div className="flex items-center gap-2.5">
+              <Globe className="w-4 h-4 text-emerald-400" />
+              <div className="text-left">
+                <span className="block leading-tight text-white">Aller sur la plateforme</span>
+                <span className="text-[10px] text-teal-300/70 block leading-tight">Espace citoyen Bamako</span>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-0.5 transition-transform" />
-            </button>
-          </div>
+            </div>
+            <ExternalLink className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
         </div>
       </div>
 
       {/* Bottom section: Admin Profile & Logout Button */}
-      <div className="p-4 border-t border-[#0E3A3E] space-y-3 bg-[#041A1C]">
+      <div className="p-4 border-t border-[#0E3A3E] space-y-3 bg-[#041A1C] flex-shrink-0 mt-auto">
         {/* Admin profile card */}
         <div className="p-3 rounded-2xl bg-[#092B2E] border border-teal-500/15 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
