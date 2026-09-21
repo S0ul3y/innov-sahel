@@ -183,7 +183,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setCurrentUserRole(me.role);
             setCurrentUserId(me.id);
 
-            if (me.role === 'admin') {
+            if (me.role === 'admin' || me.role === 'super_admin') {
               // Charger les contributions citoyennes réelles depuis MySQL
               const fetchedContribs = await ContributionsController.getAll();
               if (fetchedContribs) setContributions(fetchedContribs);
@@ -195,6 +195,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               // Charger les stats dashboard
               const stats = await DashboardController.getStats();
               if (stats) setDashboardStats(stats);
+            } else if (me.role === 'porteur') {
+              try {
+                const [adminInits, stats] = await Promise.all([
+                  InitiativesController.getAllAdmin(),
+                  DashboardController.getStats(),
+                ]);
+                if (adminInits && adminInits.length > 0) {
+                  setInitiatives(adminInits);
+                }
+                if (stats) setDashboardStats(stats);
+              } catch (e) {
+                console.warn('Erreur chargement données porteur:', e);
+              }
             }
           }
         } catch {
@@ -253,7 +266,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setActiveTab('mon_espace');
       
       // Recharger les données complètes pour l'espace d'administration
-      if (res.user.role === 'admin') {
+      if (res.user.role === 'admin' || res.user.role === 'super_admin') {
         try {
           const [fetchedContribs, fetchedUsers, stats] = await Promise.all([
             ContributionsController.getAll(),
@@ -265,6 +278,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (stats) setDashboardStats(stats);
         } catch (e) {
           console.error('Erreur chargement données admin après login:', e);
+        }
+      } else if (res.user.role === 'porteur') {
+        try {
+          const [adminInits, stats] = await Promise.all([
+            InitiativesController.getAllAdmin(),
+            DashboardController.getStats(),
+          ]);
+          if (adminInits && adminInits.length > 0) {
+            setInitiatives(adminInits);
+          }
+          if (stats) setDashboardStats(stats);
+        } catch (e) {
+          console.error('Erreur chargement données porteur après login:', e);
         }
       }
     }

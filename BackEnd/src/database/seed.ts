@@ -20,7 +20,7 @@ import { InitiativeEntity } from '../modules/initiatives/entities/initiative.ent
 import { PublicationEntity } from '../modules/publications/entities/publication.entity';
 import { ContributionEntity } from '../modules/contributions/entities/contribution.entity';
 import { CommentEntity } from '../modules/comments/entities/comment.entity';
-import { Role, AdminLevel } from '../common/enums/role.enum';
+import { Role } from '../common/enums/role.enum';
 
 const ALL_ENTITIES = [
   UserEntity,
@@ -189,14 +189,16 @@ async function seed() {
       email: (process.env.ADMIN_1_EMAIL || 'moussa.cisse@impactsahel.org').toLowerCase(),
       phone: process.env.ADMIN_1_PHONE || '+223 20 23 45 67',
       password: process.env.ADMIN_1_PASSWORD || 'Admin1_TempPass2025!',
-      adminLevel: AdminLevel.PRINCIPAL,
+      role: Role.SUPER_ADMIN,
+      label: 'Super Admin',
     },
     {
       name: process.env.ADMIN_2_NAME || 'Aminata Traoré',
       email: (process.env.ADMIN_2_EMAIL || 'aminata.traore@impactsahel.org').toLowerCase(),
       phone: process.env.ADMIN_2_PHONE || '+223 70 12 34 56',
       password: process.env.ADMIN_2_PASSWORD || 'Admin2_TempPass2025!',
-      adminLevel: AdminLevel.SUIVI,
+      role: Role.ADMIN,
+      label: 'Admin Platform',
     },
   ];
 
@@ -211,26 +213,62 @@ async function seed() {
           email: admin.email,
           phone: admin.phone,
           password: hashedPassword,
-          role: Role.ADMIN,
-          adminLevel: admin.adminLevel,
+          role: admin.role,
+          adminLevel: null,
           status: 'actif',
           mustChangePassword: false,
         }),
       );
-      console.log(`   ✓ ${admin.name} (Admin ${admin.adminLevel}) créé(e)`);
+      console.log(`   ✓ ${admin.name} (${admin.label}) créé(e)`);
     } else {
-      console.log(`   — ${admin.name} déjà existant(e)`);
+      existing.role = admin.role;
+      existing.adminLevel = null;
+      await userRepo.save(existing);
+      console.log(`   ✓ ${admin.name} mis à jour avec le rôle ${admin.role}`);
     }
+  }
+
+  // ─── 3. Porteur par défaut ───────────────────────────────────────────────────
+  console.log('\n🌱 Seed du porteur d\'initiative par défaut...');
+
+  const porteurEmail = (process.env.PORTEUR_1_EMAIL || 'fatoumata.diallo@labcitoyen.org').toLowerCase();
+  const existingPorteur = await userRepo.findOne({ where: { email: porteurEmail } });
+  if (!existingPorteur) {
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(
+      process.env.PORTEUR_1_PASSWORD || 'Porteur1_TempPass2025!',
+      salt,
+    );
+    await userRepo.save(
+      userRepo.create({
+        name: process.env.PORTEUR_1_NAME || 'Fatoumata Diallo',
+        email: porteurEmail,
+        phone: process.env.PORTEUR_1_PHONE || '+223 76 98 76 54',
+        password: hashedPassword,
+        role: Role.PORTEUR,
+        adminLevel: null,
+        communeId: 'c4',
+        initiativeName: 'Jardins Partagés de Hamdallaye',
+        status: 'actif',
+        mustChangePassword: true,
+      }),
+    );
+    console.log('   ✓ Fatoumata Diallo (Porteur par défaut) créée');
+  } else {
+    console.log('   — Fatoumata Diallo déjà existante');
   }
 
   await AppDataSource.destroy();
   console.log('\n✅ Seed terminé avec succès !\n');
-  console.log('🔑 Identifiants Admin 1 :');
+  console.log('🔑 Identifiants Super Admin (Moussa Cissé) :');
   console.log(`   Email    : ${admins[0].email}`);
   console.log(`   Password : ${process.env.ADMIN_1_PASSWORD || 'Admin1_TempPass2025!'}`);
-  console.log('\n🔑 Identifiants Admin 2 :');
+  console.log('\n🔑 Identifiants Admin Platform (Aminata Traoré) :');
   console.log(`   Email    : ${admins[1].email}`);
-  console.log(`   Password : ${process.env.ADMIN_2_PASSWORD || 'Admin2_TempPass2025!'}\n`);
+  console.log(`   Password : ${process.env.ADMIN_2_PASSWORD || 'Admin2_TempPass2025!'}`);
+  console.log('\n🔑 Identifiants Porteur (Fatoumata Diallo) :');
+  console.log(`   Email    : ${porteurEmail}`);
+  console.log(`   Password : ${process.env.PORTEUR_1_PASSWORD || 'Porteur1_TempPass2025!'}\n`);
 }
 
 seed().catch((err) => {

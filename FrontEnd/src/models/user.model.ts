@@ -5,7 +5,7 @@ export interface UserAccount {
   name: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'porteur';
+  role: 'super_admin' | 'admin' | 'porteur';
   adminLevel?: AdminLevel | null;
   communeId?: string;
   initiativeName?: string;
@@ -19,7 +19,7 @@ export interface CreateUserDto {
   name: string;
   email: string;
   phone?: string;
-  password?: string;
+  temporaryPassword?: string;
   communeId?: string;
   initiativeName?: string;
 }

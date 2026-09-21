@@ -24,6 +24,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { AdminTabId } from './AdminSidebar';
+import { isPorteur } from '../../models/auth.model';
 
 interface AdminDashboardTabProps {
   onNavigateTab: (tab: AdminTabId) => void;
@@ -100,6 +101,200 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
     setTimeout(() => setDownloadSuccess(false), 3500);
   };
 
+  // ─── Vue exclusive pour le Porteur d'Initiative ───────────────────────────
+  if (isPorteur(activeUser as any)) {
+    const myInitiatives = initiatives.filter(i =>
+      i.ownerUserId === activeUser.id ||
+      (activeUser.initiativeName && i.title.toLowerCase().includes(activeUser.initiativeName.toLowerCase()))
+    );
+    const myInitiativeIds = myInitiatives.map(i => i.id);
+    const myComments = comments.filter(c => c.initiativeId && myInitiativeIds.includes(c.initiativeId));
+    const totalViews = myInitiatives.reduce((acc, curr) => acc + (curr.viewsCount || 0), 0);
+    const answeredCommentsCount = myComments.filter(c => !!c.replyText).length;
+    const unansweredCommentsCount = myComments.length - answeredCommentsCount;
+
+    return (
+      <div className="space-y-6 pb-12">
+        {/* Porteur Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] font-black tracking-wider uppercase text-emerald-800">
+                Espace Porteur de Projet • Statistiques Personnelles
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              Tableau de Bord — Mon Projet
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+              Bienvenue, {activeUser.name} ! Suivez l'impact direct et la visibilité citoyenne de vos initiatives.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => setActiveTab('accueil')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-300 shadow-xs transition-all cursor-pointer"
+            >
+              <ExternalLink className="w-4 h-4 text-emerald-600" />
+              <span>Voir sur la plateforme</span>
+            </button>
+            <button
+              onClick={() => onNavigateTab('mon-initiative')}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-[#062326] font-black text-xs shadow-md transition-all cursor-pointer active:scale-95"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Gérer mon initiative</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 4 Porteur Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase">Initiatives gérées</span>
+              <div className="p-2 rounded-xl bg-teal-50 text-teal-600">
+                <Building2 className="w-5 h-5" />
+              </div>
+            </div>
+            <p className="text-3xl font-black text-slate-900 mt-2">{myInitiatives.length}</p>
+            <p className="text-xs text-slate-400 mt-1">Fiches rattachées à votre compte</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase">Vues Citoyennes</span>
+              <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                <ArrowUpRight className="w-5 h-5" />
+              </div>
+            </div>
+            <p className="text-3xl font-black text-slate-900 mt-2">{totalViews}</p>
+            <p className="text-xs text-slate-400 mt-1">Consultations cumulées</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase">Commentaires reçus</span>
+              <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+            </div>
+            <p className="text-3xl font-black text-slate-900 mt-2">{myComments.length}</p>
+            <p className="text-xs text-slate-400 mt-1">{unansweredCommentsCount} sans réponse</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase">Réponses apportées</span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+            </div>
+            <p className="text-3xl font-black text-slate-900 mt-2">{answeredCommentsCount}</p>
+            <p className="text-xs text-slate-400 mt-1">Dialogue actif avec les citoyens</p>
+          </div>
+        </div>
+
+        {/* Porteur Initiatives & Dialogue Summary */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Mes projets */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-slate-900 text-base flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-emerald-600" />
+                Mes fiches d'initiative ({myInitiatives.length})
+              </h3>
+              <button
+                onClick={() => onNavigateTab('mon-initiative')}
+                className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
+              >
+                Ouvrir la gestion →
+              </button>
+            </div>
+
+            {myInitiatives.length === 0 ? (
+              <div className="text-center py-8 text-slate-400 text-sm">
+                Aucune initiative enregistrée pour le moment.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myInitiatives.map(init => {
+                  const comm = communes.find(c => c.id === init.communeId);
+                  const initComments = comments.filter(c => c.initiativeId === init.id);
+                  return (
+                    <div key={init.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-between gap-4">
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-sm">{init.title}</h4>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                          <span>{comm?.name}</span>
+                          <span>•</span>
+                          <span>{init.viewsCount || 0} vues</span>
+                          <span>•</span>
+                          <span>{initComments.length} avis</span>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        init.status === 'termine' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {init.status === 'termine' ? 'Terminé' : 'En cours'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Dernières questions des citoyens */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-slate-900 text-base flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-teal-600" />
+                Dernières réactions citoyennes
+              </h3>
+              <button
+                onClick={() => onNavigateTab('mon-initiative')}
+                className="text-xs font-bold text-teal-700 hover:underline cursor-pointer"
+              >
+                Répondre aux questions →
+              </button>
+            </div>
+
+            {myComments.length === 0 ? (
+              <div className="text-center py-8 text-slate-400 text-sm">
+                Aucune question ou commentaire citoyen pour l'instant.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myComments.slice(0, 3).map(comment => (
+                  <div key={comment.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50 text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-slate-800">{comment.authorName}</span>
+                      <span className="text-[10px] text-slate-400">{comment.date}</span>
+                    </div>
+                    <p className="text-slate-600 line-clamp-2">{comment.message}</p>
+                    {comment.replyText ? (
+                      <span className="inline-block mt-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
+                        ✓ Répondu
+                      </span>
+                    ) : (
+                      <span className="inline-block mt-1 text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded">
+                        ⏳ En attente de réponse
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Vue standard Administrateur (Global Platform) ────────────────────────
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header Bar */}

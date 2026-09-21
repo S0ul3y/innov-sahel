@@ -28,6 +28,12 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# Uploads (runtime files)
+/BackEnd/uploads/*
+!/BackEnd/uploads/.gitkeep
+/uploads/*
+!/uploads/.gitkeep
+
 # IDE & Editor
 .vscode/
 .idea/

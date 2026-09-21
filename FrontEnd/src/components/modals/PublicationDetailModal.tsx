@@ -15,6 +15,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { YoutubeEmbed } from '../shared/YoutubeEmbed';
+import { UploadsController } from '../../controllers/uploadsController';
 
 export const PublicationDetailModal: React.FC = () => {
   const { 
@@ -69,8 +71,15 @@ export const PublicationDetailModal: React.FC = () => {
   };
 
   const slides = selectedPublication.carouselImages && selectedPublication.carouselImages.length > 0
-    ? selectedPublication.carouselImages
-    : [{ url: selectedPublication.coverImage, caption: selectedPublication.title }];
+    ? selectedPublication.carouselImages.map(img => ({
+        ...img,
+        url: UploadsController.getImageUrl(img.url)
+      }))
+    : selectedPublication.coverImage
+    ? [{ url: UploadsController.getImageUrl(selectedPublication.coverImage), caption: selectedPublication.title }]
+    : [];
+
+  const hasVideo = !!(selectedPublication.youtubeUrl || selectedPublication.youtubeId);
 
   return (
     <AnimatePresence>
@@ -111,17 +120,15 @@ export const PublicationDetailModal: React.FC = () => {
 
           {/* Media Header: Video or Carousel Slider */}
           <div className="relative w-full bg-slate-900 flex-shrink-0">
-            {selectedPublication.format === 'video' && selectedPublication.youtubeId ? (
-              <div className="aspect-video w-full">
-                <iframe
-                  src={`https://www.youtube.com/embed/${selectedPublication.youtubeId}?autoplay=1`}
+            {hasVideo ? (
+              <div className="w-full">
+                <YoutubeEmbed
+                  youtubeId={selectedPublication.youtubeId}
+                  youtubeUrl={selectedPublication.youtubeUrl}
                   title={selectedPublication.title}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
                 />
               </div>
-            ) : (
+            ) : slides.length > 0 ? (
               <div className="relative h-60 sm:h-80 w-full overflow-hidden">
                 <img
                   src={slides[activeSlide]?.url}
@@ -154,7 +161,7 @@ export const PublicationDetailModal: React.FC = () => {
                   </>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Article Content & Metadata */}

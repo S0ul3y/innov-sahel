@@ -1,22 +1,29 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { 
-  LayoutDashboard, 
-  Users, 
-  MessageSquare, 
-  Newspaper, 
-  Globe, 
-  LogOut, 
-  ShieldCheck, 
+import {
+  LayoutDashboard,
+  Users,
+  MessageSquare,
+  Newspaper,
+  Globe,
+  LogOut,
+  ShieldCheck,
   Sparkles,
-  ChevronRight,
   ExternalLink,
+  X,
+  Crown,
   Layers,
-  Building2,
-  X
+  Star,
 } from 'lucide-react';
+import { isSuperAdmin, isPlatformAdmin, isPorteur, getRoleLabel, getRoleBadgeColor } from '../../models/auth.model';
 
-export type AdminTabId = 'dashboard' | 'porteurs' | 'contributions' | 'publications';
+export type AdminTabId =
+  | 'dashboard'
+  | 'admins'
+  | 'porteurs'
+  | 'contributions'
+  | 'publications'
+  | 'mon-initiative';
 
 interface AdminSidebarProps {
   currentTab: AdminTabId;
@@ -31,48 +38,46 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   isOpenMobile,
   onCloseMobile
 }) => {
-  const { 
-    activeUser, 
-    logout, 
-    setActiveTab, 
-    users, 
-    currentUserId, 
-    setCurrentUserId,
+  const {
+    activeUser,
+    logout,
+    setActiveTab,
     contributions,
-    comments
+    comments,
   } = useApp();
 
   const reportedCommentsCount = comments.filter(c => c.reported).length;
   const newContributionsCount = contributions.filter(c => c.internalStatus === 'nouveau').length;
 
-  // Identify the two admins
-  const admin1 = users.find(u => u.id === 'u-admin-1') || users.find(u => u.role === 'admin');
-  const admin2 = users.find(u => u.id === 'u-admin-2');
+  const isSuper = isSuperAdmin(activeUser as any);
+  const isPlatform = isPlatformAdmin(activeUser as any);
+  const isPorteurUser = isPorteur(activeUser as any);
 
-  const isCurrentAdmin1 = activeUser.id === admin1?.id || activeUser.email?.includes('moussa') || !admin2;
-
-  const handleSwitchAdmin = () => {
-    if (isCurrentAdmin1 && admin2) {
-      setCurrentUserId(admin2.id);
-    } else if (admin1) {
-      setCurrentUserId(admin1.id);
-    }
-  };
-
-  const navItems = [
+  // Onglets visibles selon le rôle
+  const allNavItems = [
     {
       id: 'dashboard' as AdminTabId,
       label: 'Dashboard',
-      description: 'Indicateurs & Statistiques',
+      description: isPorteurUser ? 'Stats de mon initiative' : 'Indicateurs & Statistiques',
       icon: LayoutDashboard,
-      badge: null
+      badge: null,
+      visibleFor: ['super_admin', 'admin', 'porteur'],
+    },
+    {
+      id: 'admins' as AdminTabId,
+      label: 'Admins Platform',
+      description: 'Gérer les administrateurs',
+      icon: Crown,
+      badge: null,
+      visibleFor: ['super_admin'],
     },
     {
       id: 'porteurs' as AdminTabId,
-      label: 'Porteur d’initiatives',
+      label: "Porteur d'initiatives",
       description: 'Gestion, incubation & comptes',
       icon: Users,
-      badge: null
+      badge: null,
+      visibleFor: ['super_admin', 'admin'],
     },
     {
       id: 'contributions' as AdminTabId,
@@ -80,21 +85,37 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       description: 'Signalements & Idées reçues',
       icon: MessageSquare,
       badge: newContributionsCount > 0 ? `${newContributionsCount} nvx` : null,
-      badgeColor: 'bg-red-500 text-white'
+      badgeColor: 'bg-red-500 text-white',
+      visibleFor: ['super_admin', 'admin'],
     },
     {
       id: 'publications' as AdminTabId,
       label: 'Publications',
-      description: 'Activités, Mairies & Modération',
+      description: 'Actualités, Mairies & Modération',
       icon: Newspaper,
       badge: reportedCommentsCount > 0 ? `${reportedCommentsCount} sign.` : null,
-      badgeColor: 'bg-amber-400 text-[#062326]'
-    }
+      badgeColor: 'bg-amber-400 text-[#062326]',
+      visibleFor: ['super_admin', 'admin'],
+    },
+    {
+      id: 'mon-initiative' as AdminTabId,
+      label: 'Mon Initiative',
+      description: 'Gérer mon projet & commentaires',
+      icon: Star,
+      badge: null,
+      visibleFor: ['porteur'],
+    },
   ];
+
+  const userRole = (activeUser as any)?.role || 'porteur';
+  const navItems = allNavItems.filter(item => item.visibleFor.includes(userRole));
+
+  const roleLabel = getRoleLabel(activeUser as any);
+  const roleBadgeColor = getRoleBadgeColor(activeUser as any);
 
   const sidebarContent = (
     <div className="h-full flex flex-col bg-[#062326] text-white border-r border-[#0E3A3E] select-none overflow-y-auto overflow-x-hidden custom-scrollbar overscroll-contain">
-      {/* Top section: Brand Logo & Title (Sticky Header) */}
+      {/* Top section: Brand Logo & Title */}
       <div className="p-6 border-b border-[#0E3A3E] flex items-center justify-between sticky top-0 bg-[#062326] z-10 flex-shrink-0 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-[#062326] shadow-lg shadow-emerald-900/30">
@@ -149,8 +170,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
-                      isActive 
-                        ? 'bg-[#062326]/20 text-[#062326]' 
+                      isActive
+                        ? 'bg-[#062326]/20 text-[#062326]'
                         : 'bg-white/5 text-teal-300 group-hover:bg-white/10 group-hover:text-white'
                     }`}>
                       <Icon className="w-4 h-4" />
@@ -165,9 +186,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     </div>
                   </div>
 
-                  {item.badge && (
-                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${item.badgeColor || 'bg-emerald-400 text-[#062326]'}`}>
-                      {item.badge}
+                  {(item as any).badge && (
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${(item as any).badgeColor || 'bg-emerald-400 text-[#062326]'}`}>
+                      {(item as any).badge}
                     </span>
                   )}
                 </button>
@@ -176,7 +197,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </nav>
         </div>
 
-        {/* Quick Platform Action (Link to Citizen space) */}
+        {/* Quick Platform Action */}
         <div className="pt-2 border-t border-[#0E3A3E]">
           <span className="px-3 text-[10px] font-black uppercase tracking-widest text-teal-400/60 block mb-2">
             Accès Public
@@ -198,42 +219,31 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom section: Admin Profile & Logout Button */}
+      {/* Bottom section: Profil Admin & Logout */}
       <div className="p-4 border-t border-[#0E3A3E] space-y-3 bg-[#041A1C] flex-shrink-0 mt-auto">
-        {/* Admin profile card */}
-        <div className="p-3 rounded-2xl bg-[#092B2E] border border-teal-500/15 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="relative flex-shrink-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-black text-xs flex items-center justify-center shadow-xs">
-                {activeUser.name.charAt(0)}
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#041A1C]" />
+        {/* Carte profil */}
+        <div className="p-3 rounded-2xl bg-[#092B2E] border border-teal-500/15 flex items-center gap-2.5 min-w-0">
+          <div className="relative flex-shrink-0">
+            <div className={`w-9 h-9 rounded-xl text-white font-black text-xs flex items-center justify-center shadow-xs ${
+              isSuper ? 'bg-gradient-to-tr from-yellow-500 to-amber-400 text-[#062326]' :
+              isPlatform ? 'bg-gradient-to-tr from-emerald-600 to-teal-400' :
+              'bg-gradient-to-tr from-blue-600 to-cyan-400'
+            }`}>
+              {activeUser?.name?.charAt(0) || 'A'}
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-xs text-white truncate block">
-                  {activeUser.name}
-                </span>
-              </div>
-              <span className="text-[10px] font-medium text-teal-300/70 block truncate">
-                {isCurrentAdmin1 ? 'Admin 1 • Principal' : 'Admin 2 • Suivi'}
-              </span>
-            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#041A1C]" />
           </div>
-
-          {/* Quick toggle between Admin 1 and Admin 2 */}
-          {admin2 && (
-            <button
-              onClick={handleSwitchAdmin}
-              title={`Basculer vers ${isCurrentAdmin1 ? admin2.name : admin1?.name}`}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-teal-300 text-[10px] font-bold transition-colors cursor-pointer flex-shrink-0 border border-teal-500/20"
-            >
-              ⇄ {isCurrentAdmin1 ? 'Admin 2' : 'Admin 1'}
-            </button>
-          )}
+          <div className="min-w-0 flex-1">
+            <span className="font-extrabold text-xs text-white truncate block">
+              {activeUser?.name || 'Administrateur'}
+            </span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${roleBadgeColor}`}>
+              {isSuper ? '👑 Super Admin' : isPlatform ? '🛡 Admin Platform' : '⭐ Porteur'}
+            </span>
+          </div>
         </div>
 
-        {/* Le bouton déconnexion tout en bas du sidebar */}
+        {/* Bouton déconnexion */}
         <button
           id="admin-logout-button"
           onClick={logout}
@@ -256,8 +266,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       {/* Mobile Drawer */}
       {isOpenMobile && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" 
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
           />
           <div className="relative w-80 max-w-[85vw] h-full z-10 animate-in slide-in-from-left duration-200">

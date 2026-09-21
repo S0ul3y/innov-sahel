@@ -40,8 +40,9 @@ export class UserEntity {
   password: string;
 
   @ApiProperty({ enum: Role, example: Role.ADMIN })
-  @Column({ type: 'simple-enum', enum: Role })
+  @Column({ type: 'simple-enum', enum: ['super_admin', 'admin', 'porteur'] })
   role: Role;
+
 
   /**
    * Niveau d'administration (null pour les porteurs).

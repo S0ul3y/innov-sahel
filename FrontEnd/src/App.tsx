@@ -40,7 +40,7 @@ const MainLayout: React.FC = () => {
 
   // ISOLATION ESPACE ADMIN:
   // "Sur l'espace admin, on ne verra rien de ce qui concerne la plateforme comme les pages d'accueil et autre sur la navbar et tout autre sur l'espace citoyen."
-  if (currentUserRole === 'admin' && activeTab === 'mon_espace' && !selectedPublication && !selectedInitiative) {
+  if ((currentUserRole === 'admin' || currentUserRole === 'super_admin') && activeTab === 'mon_espace' && !selectedPublication && !selectedInitiative) {
     return (
       <div className="min-h-screen bg-[#F8FAFC]">
         <AdminDashboardView />

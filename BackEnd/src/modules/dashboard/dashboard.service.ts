@@ -23,7 +23,72 @@ export class DashboardService {
     private readonly contributionRepo: Repository<ContributionEntity>,
   ) {}
 
-  async getStats() {
+  async getStats(user?: UserEntity) {
+    if (user && user.role === Role.PORTEUR) {
+      const porteurInitiatives = await this.initiativeRepo.find({
+        where: { ownerUserId: user.id },
+        order: { createdAt: 'DESC' },
+      });
+      const initiativeIds = porteurInitiatives.map(i => i.id);
+
+      const totalViews = porteurInitiatives.reduce((acc, curr) => acc + (curr.viewsCount || 0), 0);
+
+      let totalComments = 0;
+      let totalCommentsReported = 0;
+      let recentComments: CommentEntity[] = [];
+
+      if (initiativeIds.length > 0) {
+        totalComments = await this.commentRepo
+          .createQueryBuilder('c')
+          .where('c.initiativeId IN (:...ids)', { ids: initiativeIds })
+          .getCount();
+
+        totalCommentsReported = await this.commentRepo
+          .createQueryBuilder('c')
+          .where('c.initiativeId IN (:...ids) AND c.reported = :rep', { ids: initiativeIds, rep: true })
+          .getCount();
+
+        recentComments = await this.commentRepo
+          .createQueryBuilder('c')
+          .where('c.initiativeId IN (:...ids)', { ids: initiativeIds })
+          .orderBy('c.createdAt', 'DESC')
+          .take(10)
+          .getMany();
+      }
+
+      return {
+        isPorteur: true,
+        initiatives: {
+          total: porteurInitiatives.length,
+          list: porteurInitiatives,
+        },
+        views: {
+          total: totalViews,
+        },
+        comments: {
+          total: totalComments,
+          reported: totalCommentsReported,
+          recent: recentComments,
+        },
+        users: {
+          totalPorteurs: 1,
+          totalPorteursActifs: user.status === 'actif' ? 1 : 0,
+          totalPorteursSuspendus: user.status === 'actif' ? 0 : 1,
+        },
+        contributions: {
+          total: 0,
+          idees: 0,
+          signalements: 0,
+          nouveau: 0,
+          byStatus: [],
+        },
+        recent: {
+          publications: [],
+          contributions: [],
+        },
+      };
+    }
+
     const [
       totalPorteurs,
       totalPorteursActifs,

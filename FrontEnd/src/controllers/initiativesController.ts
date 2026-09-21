@@ -14,6 +14,12 @@ export class InitiativesController {
     return apiClient.get<Initiative[]>(`/initiatives${query}`);
   }
 
+  static async getAllAdmin(params?: { communeId?: string }): Promise<Initiative[]> {
+    let query = '';
+    if (params?.communeId) query = `?communeId=${encodeURIComponent(params.communeId)}`;
+    return apiClient.get<Initiative[]>(`/initiatives/admin/list${query}`);
+  }
+
   static async getById(id: string): Promise<Initiative> {
     return apiClient.get<Initiative>(`/initiatives/${id}`);
   }

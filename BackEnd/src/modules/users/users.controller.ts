@@ -16,14 +16,14 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { AdminLevelGuard } from '../../common/guards/admin-level.guard';
+import { SuperAdminGuard } from '../../common/guards/super-admin.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { RequireAdminLevel } from '../../common/decorators/admin-level.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { Role, AdminLevel } from '../../common/enums/role.enum';
+import { Role } from '../../common/enums/role.enum';
 import { UserEntity } from './entities/user.entity';
 
 @ApiTags('Users')
@@ -33,7 +33,26 @@ import { UserEntity } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // ─── GET /api/users ── Liste porteurs [ADMIN] ─────────────────────────────
+  // ─── GET /api/users/admins ── Liste des admins platform [SUPER_ADMIN] ────────
+  @Get('admins')
+  @UseGuards(SuperAdminGuard)
+  @ApiOperation({ summary: 'Lister les admins platform [Super Admin uniquement]' })
+  findAllAdmins() {
+    return this.usersService.findAllAdmins();
+  }
+
+  // ─── POST /api/users/admin ── Créer un admin platform [SUPER_ADMIN] ──────────
+  @Post('admin')
+  @UseGuards(SuperAdminGuard)
+  @ApiOperation({ summary: 'Créer un compte Admin Platform [Super Admin uniquement]' })
+  @ApiResponse({ status: 201, description: 'Compte admin créé' })
+  @ApiResponse({ status: 403, description: 'Réservé au Super Administrateur' })
+  @ApiResponse({ status: 409, description: 'Email déjà utilisé' })
+  createAdmin(@Body() dto: CreateAdminDto) {
+    return this.usersService.createAdmin(dto);
+  }
+
+  // ─── GET /api/users ── Liste porteurs [ADMIN ou SUPER_ADMIN] ─────────────────
   @Get()
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Lister tous les porteurs [ADMIN]' })
@@ -41,32 +60,28 @@ export class UsersController {
     return this.usersService.findAllPorteurs();
   }
 
-  // ─── POST /api/users ── Créer porteur [ADMIN PRINCIPAL] ──────────────────
+  // ─── POST /api/users ── Créer porteur [ADMIN ou SUPER_ADMIN] ─────────────────
   @Post()
   @Roles(Role.ADMIN)
-  @UseGuards(AdminLevelGuard)
-  @RequireAdminLevel(AdminLevel.PRINCIPAL)
-  @ApiOperation({ summary: 'Créer un compte porteur [Admin Principal uniquement]' })
+  @ApiOperation({ summary: 'Créer un compte porteur [Admin ou Super Admin]' })
   @ApiResponse({ status: 201, description: 'Compte porteur créé' })
-  @ApiResponse({ status: 403, description: "Réservé à l'Admin Principal" })
   @ApiResponse({ status: 409, description: 'Email déjà utilisé' })
   create(@Body() dto: CreateUserDto) {
     return this.usersService.createPorteur(dto);
   }
 
-  // ─── GET /api/users/:id ── Détail compte ─────────────────────────────────
+  // ─── GET /api/users/:id ── Détail compte ─────────────────────────────────────
   @Get(':id')
   @Roles(Role.ADMIN, Role.PORTEUR)
   @ApiOperation({ summary: "Détail d'un compte utilisateur [ADMIN ou propriétaire]" })
   findOne(@Param('id') id: string, @CurrentUser() user: UserEntity) {
-    // Un porteur ne peut voir que son propre profil
     if (user.role === Role.PORTEUR && user.id !== id) {
       return this.usersService.findOne(user.id);
     }
     return this.usersService.findOne(id);
   }
 
-  // ─── PATCH /api/users/:id ── Modifier compte ──────────────────────────────
+  // ─── PATCH /api/users/:id ── Modifier compte ──────────────────────────────────
   @Patch(':id')
   @Roles(Role.ADMIN, Role.PORTEUR)
   @ApiOperation({ summary: 'Modifier un compte [ADMIN ou propriétaire]' })
@@ -78,25 +93,20 @@ export class UsersController {
     return this.usersService.update(id, dto, user);
   }
 
-  // ─── DELETE /api/users/:id ── Supprimer porteur [ADMIN PRINCIPAL] ─────────
+  // ─── DELETE /api/users/:id ── Supprimer compte ────────────────────────────────
   @Delete(':id')
   @Roles(Role.ADMIN)
-  @UseGuards(AdminLevelGuard)
-  @RequireAdminLevel(AdminLevel.PRINCIPAL)
-  @ApiOperation({ summary: 'Supprimer un compte porteur [Admin Principal uniquement]' })
+  @ApiOperation({ summary: 'Supprimer un compte porteur [Admin ou Super Admin]' })
   @ApiResponse({ status: 200, description: 'Compte supprimé' })
-  @ApiResponse({ status: 403, description: "Réservé à l'Admin Principal" })
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: UserEntity) {
+    return this.usersService.remove(id, user);
   }
 
-  // ─── PATCH /api/users/:id/status ── Activer/Suspendre [ADMIN PRINCIPAL] ───
+  // ─── PATCH /api/users/:id/status ── Activer/Désactiver ────────────────────────
   @Patch(':id/status')
   @Roles(Role.ADMIN)
-  @UseGuards(AdminLevelGuard)
-  @RequireAdminLevel(AdminLevel.PRINCIPAL)
-  @ApiOperation({ summary: 'Activer ou suspendre un porteur [Admin Principal uniquement]' })
-  toggleStatus(@Param('id') id: string) {
-    return this.usersService.toggleStatus(id);
+  @ApiOperation({ summary: 'Activer ou désactiver un compte [selon hiérarchie]' })
+  toggleStatus(@Param('id') id: string, @CurrentUser() user: UserEntity) {
+    return this.usersService.toggleStatus(id, user);
   }
 }

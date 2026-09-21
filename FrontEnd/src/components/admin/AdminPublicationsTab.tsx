@@ -24,6 +24,8 @@ import {
   Video,
   Image as ImageIcon
 } from 'lucide-react';
+import { ImageUpload } from '../shared/ImageUpload';
+import { YoutubeEmbed } from '../shared/YoutubeEmbed';
 
 export const AdminPublicationsTab: React.FC = () => {
   const { 
@@ -55,7 +57,7 @@ export const AdminPublicationsTab: React.FC = () => {
   const [newSummary, setNewSummary] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newCommuneId, setNewCommuneId] = useState(communes[0]?.id || 'c1');
-  const [newImageUrl, setNewImageUrl] = useState('https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&q=80&w=1000');
+  const [newImageUrl, setNewImageUrl] = useState('');
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
   // Edit form state
@@ -530,16 +532,15 @@ export const AdminPublicationsTab: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-4">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">
-                    URL Image de couverture
+                    Image de couverture
                   </label>
-                  <input
-                    type="url"
+                  <ImageUpload
                     value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-[11px]"
+                    onChange={(url) => setNewImageUrl(url)}
+                    aspectRatio="16/9"
                   />
                 </div>
 
@@ -549,11 +550,16 @@ export const AdminPublicationsTab: React.FC = () => {
                   </label>
                   <input
                     type="url"
-                    placeholder="https://youtube.com/watch?v=..."
+                    placeholder="https://www.youtube.com/watch?v=..."
                     value={newVideoUrl}
                     onChange={(e) => setNewVideoUrl(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-[11px]"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                   />
+                  {newVideoUrl && (
+                    <div className="mt-2">
+                      <YoutubeEmbed youtubeUrl={newVideoUrl} title="Aperçu vidéo YouTube" />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -686,25 +692,34 @@ export const AdminPublicationsTab: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-4">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">URL Image</label>
-                  <input
-                    type="url"
+                  <label className="font-bold text-slate-700 block mb-1">
+                    Image de couverture
+                  </label>
+                  <ImageUpload
                     value={editImageUrl}
-                    onChange={(e) => setEditImageUrl(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-[11px]"
+                    onChange={(url) => setEditImageUrl(url)}
+                    aspectRatio="16/9"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Lien Vidéo</label>
+                  <label className="font-bold text-slate-700 block mb-1">
+                    Lien Vidéo YouTube (optionnel)
+                  </label>
                   <input
                     type="url"
+                    placeholder="https://www.youtube.com/watch?v=..."
                     value={editVideoUrl}
                     onChange={(e) => setEditVideoUrl(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-[11px]"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                   />
+                  {editVideoUrl && (
+                    <div className="mt-2">
+                      <YoutubeEmbed youtubeUrl={editVideoUrl} title="Aperçu vidéo YouTube" />
+                    </div>
+                  )}
                 </div>
               </div>
 

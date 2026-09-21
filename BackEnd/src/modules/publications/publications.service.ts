@@ -48,11 +48,21 @@ export class PublicationsService {
   }
 
   async create(dto: CreatePublicationDto, user: UserEntity): Promise<PublicationEntity> {
+    // Extraction automatique de l'ID YouTube depuis l'URL
+    let youtubeId = dto.youtubeId || null;
+    if (dto.youtubeUrl && !youtubeId) {
+      const match = dto.youtubeUrl.match(
+        /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+      );
+      youtubeId = match ? match[1] : null;
+    }
+
     const pub = this.repo.create({
       ...dto,
       authorUserId: user.id,
       authorName: user.name,
-      authorRole: user.role === Role.ADMIN ? 'admin' : 'porteur',
+      authorRole: (user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) ? 'admin' : 'porteur',
+      youtubeId,
       date: new Date().toISOString(),
     });
     return this.repo.save(pub);
@@ -63,6 +73,13 @@ export class PublicationsService {
     if (!item) throw new NotFoundException('Publication introuvable.');
     if (user.role === Role.PORTEUR && item.authorUserId !== user.id) {
       throw new ForbiddenException("Vous ne pouvez modifier que vos propres publications.");
+    }
+    // Re-extraction youtubeId si l'URL change
+    if (dto.youtubeUrl && dto.youtubeUrl !== item.youtubeUrl) {
+      const match = dto.youtubeUrl.match(
+        /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+      );
+      (dto as any).youtubeId = match ? match[1] : null;
     }
     Object.assign(item, dto);
     return this.repo.save(item);

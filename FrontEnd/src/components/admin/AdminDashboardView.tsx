@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AdminSidebar, AdminTabId } from './AdminSidebar';
 import { AdminDashboardTab } from './AdminDashboardTab';
+import { AdminAdminsTab } from './AdminAdminsTab';
 import { AdminPorteursTab } from './AdminPorteursTab';
 import { AdminContributionsTab } from './AdminContributionsTab';
 import { AdminPublicationsTab } from './AdminPublicationsTab';
+import { AdminMonInitiativeTab } from './AdminMonInitiativeTab';
 import { Menu, Sparkles, Globe, LogOut } from 'lucide-react';
 
 export const AdminDashboardView: React.FC = () => {
@@ -70,6 +72,9 @@ export const AdminDashboardView: React.FC = () => {
           {currentTab === 'dashboard' && (
             <AdminDashboardTab onNavigateTab={(tab) => setCurrentTab(tab)} />
           )}
+          {currentTab === 'admins' && (
+            <AdminAdminsTab />
+          )}
           {currentTab === 'porteurs' && (
             <AdminPorteursTab />
           )}
@@ -78,6 +83,9 @@ export const AdminDashboardView: React.FC = () => {
           )}
           {currentTab === 'publications' && (
             <AdminPublicationsTab />
+          )}
+          {currentTab === 'mon-initiative' && (
+            <AdminMonInitiativeTab />
           )}
         </main>
       </div>

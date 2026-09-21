@@ -187,11 +187,11 @@ export const LoginView: React.FC = () => {
         <div className="pt-6 border-t border-slate-100 space-y-4">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
             <Info className="w-4 h-4 text-[#38B6FF]" />
-            <span>Comptes administrateurs MySQL configurés :</span>
+            <span>Comptes configurés dans la base de données :</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Compte 1: Moussa Cissé */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Compte 1: Moussa Cissé — Super Admin */}
             <button
               type="button"
               onClick={() => handleQuickFill('moussa.cisse@impactsahel.org', 'Admin1_TempPass2025!')}
@@ -202,14 +202,14 @@ export const LoginView: React.FC = () => {
                   Moussa Cissé
                 </span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-                  Principal
+                  👑 Super Admin
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-mono">moussa.cisse@impactsahel.org</p>
               <span className="text-[10px] text-slate-400 mt-1 block">Cliquez pour pré-remplir</span>
             </button>
 
-            {/* Compte 2: Aminata Traoré */}
+            {/* Compte 2: Aminata Traoré — Admin Platform */}
             <button
               type="button"
               onClick={() => handleQuickFill('aminata.traore@impactsahel.org', 'Admin2_TempPass2025!')}
@@ -219,12 +219,30 @@ export const LoginView: React.FC = () => {
                 <span className="text-xs font-bold text-[#08233C] group-hover:text-[#38B6FF]">
                   Aminata Traoré
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                  Suivi
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  🛡 Admin Platform
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-mono">aminata.traore@impactsahel.org</p>
               <span className="text-[10px] text-slate-400 mt-1 block">Cliquez pour pré-remplir</span>
+            </button>
+
+            {/* Compte 3: Fatoumata Diallo — Porteur */}
+            <button
+              type="button"
+              onClick={() => handleQuickFill('fatoumata.diallo@labcitoyen.org', 'Porteur1_TempPass2025!')}
+              className="p-3.5 rounded-xl border border-slate-200 hover:border-blue-300 bg-slate-50 hover:bg-white text-left transition-all group cursor-pointer sm:col-span-1"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-[#08233C] group-hover:text-blue-600">
+                  Fatoumata Diallo
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                  ⭐ Porteur
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-mono">fatoumata.diallo@labcitoyen.org</p>
+              <span className="text-[10px] text-slate-400 mt-1 block">Jardins Partagés de Hamdallaye</span>
             </button>
           </div>
         </div>

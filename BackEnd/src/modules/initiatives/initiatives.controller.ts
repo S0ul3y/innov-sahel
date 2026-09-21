@@ -25,6 +25,16 @@ export class InitiativesController {
     return this.svc.findAll(communeId);
   }
 
+  @Get('admin/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.PORTEUR)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Lister les initiatives pour l\'espace admin (filtré si porteur)' })
+  @ApiQuery({ name: 'communeId', required: false })
+  findAllAdmin(@CurrentUser() user: UserEntity, @Query('communeId') communeId?: string) {
+    return this.svc.findAllAdmin(user, communeId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Détail d\'une initiative [PUBLIC]' })
   findOne(@Param('id') id: string) { return this.svc.findOne(id); }

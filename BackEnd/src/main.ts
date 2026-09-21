@@ -1,12 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // ─── Fichiers statiques (images uploadées) ────────────────
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
   // ─── Préfixe global ───────────────────────────────────────
   app.setGlobalPrefix('api');
@@ -55,6 +60,7 @@ async function bootstrap() {
     .addTag('Comments', 'Commentaires publics et modération')
     .addTag('Contributions', 'Idées et signalements citoyens')
     .addTag('Dashboard', 'Statistiques et tableau de bord administrateur')
+    .addTag('Uploads', 'Téléversement d\'images pour publications et initiatives')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

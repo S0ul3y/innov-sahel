@@ -6,8 +6,10 @@ import { ROLES_KEY } from '../decorators/roles.decorator';
 /**
  * RolesGuard — vérifie que l'utilisateur connecté possède le rôle requis.
  *
- * Utilisation combinée : @UseGuards(JwtAuthGuard, RolesGuard) + @Roles(Role.ADMIN)
- * Si le rôle ne correspond pas → 403 Forbidden
+ * Règle hiérarchique :
+ *   super_admin → passe toujours (même les routes @Roles(Role.ADMIN) ou @Roles(Role.PORTEUR))
+ *   admin       → passe les routes @Roles(Role.ADMIN)
+ *   porteur     → passe uniquement les routes @Roles(Role.PORTEUR)
  */
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -28,6 +30,11 @@ export class RolesGuard implements CanActivate {
 
     if (!user) {
       throw new ForbiddenException('Accès refusé : vous devez être connecté.');
+    }
+
+    // Super Admin passe toutes les vérifications de rôle (hiérarchie)
+    if (user.role === Role.SUPER_ADMIN) {
+      return true;
     }
 
     const hasRole = requiredRoles.some((role) => user.role === role);

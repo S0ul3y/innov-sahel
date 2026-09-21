@@ -1,135 +1,185 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
-import { UserAccount } from '../../types';
-import { 
-  Users, 
-  UserPlus, 
-  Search, 
-  Filter, 
-  Trash2, 
-  Edit3, 
-  ShieldAlert, 
-  CheckCircle2, 
-  X, 
-  Building2, 
-  Sparkles, 
-  Phone, 
-  Mail, 
+import { UsersController } from '../../controllers/usersController';
+import { UserAccount } from '../../models/user.model';
+import {
+  Users,
+  UserPlus,
+  Search,
+  Filter,
+  Trash2,
+  Edit3,
+  CheckCircle2,
+  X,
+  Building2,
+  Sparkles,
+  Phone,
+  Mail,
   ExternalLink,
   Lock,
-  RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Loader,
+  ToggleLeft,
+  ToggleRight,
 } from 'lucide-react';
 
 export const AdminPorteursTab: React.FC = () => {
-  const { 
-    users, 
-    communes, 
-    createUserAccount, 
-    updateUserAccount, 
-    deleteUserAccount, 
-    toggleUserStatus,
-    initiatives,
-    openInitiativeById
-  } = useApp();
+  const { communes, initiatives, openInitiativeById } = useApp();
 
-  // Search & Filter
+  // ─── Data State ───────────────────────────────────────────────────────────────
+  const [porteurs, setPorteurs] = useState<UserAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // ─── Filter State ─────────────────────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState('');
   const [communeFilter, setCommuneFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'actif' | 'suspendu'>('all');
 
-  // Modals state
+  // ─── Modal State ─────────────────────────────────────────────────────────────
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserAccount | null>(null);
   const [userToDelete, setUserToDelete] = useState<UserAccount | null>(null);
-  const [successBanner, setSuccessBanner] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // New porteur form state
+  // ─── Create Form ──────────────────────────────────────────────────────────────
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [newCommuneId, setNewCommuneId] = useState(communes[0]?.id || 'c1');
   const [newInitiativeName, setNewInitiativeName] = useState('');
 
-  // Edit porteur form state
+  // ─── Edit Form ────────────────────────────────────────────────────────────────
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editCommuneId, setEditCommuneId] = useState('');
   const [editInitiativeName, setEditInitiativeName] = useState('');
 
-  // Porteurs list
-  const porteurUsers = users.filter(u => u.role === 'porteur');
-
-  const filteredPorteurs = porteurUsers.filter(user => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.initiativeName && user.initiativeName.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesCommune = communeFilter === 'all' || user.communeId === communeFilter;
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-
-    return matchesSearch && matchesCommune && matchesStatus;
-  });
-
-  const handleCreateSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName.trim() || !newEmail.trim()) return;
-
-    createUserAccount({
-      name: newName.trim(),
-      email: newEmail.trim().toLowerCase(),
-      phone: newPhone.trim() || '+223 70 00 00 00',
-      role: 'porteur',
-      communeId: newCommuneId,
-      initiativeName: newInitiativeName.trim() || 'Initiative Locale Lab’Citoyen',
-      status: 'actif',
-      lastLogin: 'Jamais connecté'
-    });
-
-    setSuccessBanner(`Le compte porteur pour "${newName}" a été créé avec succès. Des identifiants provisoires ont été générés.`);
-    setIsCreateModalOpen(false);
-    setNewName('');
-    setNewEmail('');
-    setNewPhone('');
-    setNewInitiativeName('');
-
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
+  const showSuccess = (msg: string) => {
+    setSuccessBanner(msg);
     setTimeout(() => setSuccessBanner(null), 4000);
   };
 
+  const showError = (msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => setErrorMsg(null), 5000);
+  };
+
+  // ─── Load porteurs from API ───────────────────────────────────────────────────
+  const loadPorteurs = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await UsersController.getAll();
+      setPorteurs(data);
+    } catch (e: any) {
+      showError(e.message || 'Impossible de charger les porteurs.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPorteurs();
+  }, [loadPorteurs]);
+
+  // ─── Filtered list ────────────────────────────────────────────────────────────
+  const filteredPorteurs = porteurs.filter(user => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.initiativeName && user.initiativeName.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCommune = communeFilter === 'all' || user.communeId === communeFilter;
+    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+    return matchesSearch && matchesCommune && matchesStatus;
+  });
+
+  // ─── Create ───────────────────────────────────────────────────────────────────
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim() || !newEmail.trim() || !newPassword.trim()) return;
+    setSubmitting(true);
+    try {
+      await UsersController.create({
+        name: newName.trim(),
+        email: newEmail.trim().toLowerCase(),
+        phone: newPhone.trim() || undefined,
+        temporaryPassword: newPassword,
+        communeId: newCommuneId,
+        initiativeName: newInitiativeName.trim() || undefined,
+      });
+      await loadPorteurs();
+      showSuccess(`Le compte porteur de « ${newName} » a été créé avec succès. Le porteur peut se connecter avec le mot de passe temporaire fourni.`);
+      setIsCreateModalOpen(false);
+      setNewName(''); setNewEmail(''); setNewPhone(''); setNewPassword(''); setNewInitiativeName('');
+    } catch (e: any) {
+      showError(e.message || 'Erreur lors de la création du compte.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ─── Edit ─────────────────────────────────────────────────────────────────────
   const handleStartEdit = (user: UserAccount) => {
     setEditingUser(user);
     setEditName(user.name);
     setEditEmail(user.email);
     setEditPhone(user.phone || '');
-    setEditCommuneId(user.communeId || 'c1');
+    setEditCommuneId(user.communeId || communes[0]?.id || 'c1');
     setEditInitiativeName(user.initiativeName || '');
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-
-    updateUserAccount(editingUser.id, {
-      name: editName.trim(),
-      email: editEmail.trim().toLowerCase(),
-      phone: editPhone.trim(),
-      communeId: editCommuneId,
-      initiativeName: editInitiativeName.trim()
-    });
-
-    setSuccessBanner(`Les informations de "${editName}" ont été mises à jour.`);
-    setEditingUser(null);
-    setTimeout(() => setSuccessBanner(null), 3500);
+    setSubmitting(true);
+    try {
+      await UsersController.update(editingUser.id, {
+        name: editName.trim(),
+        email: editEmail.trim().toLowerCase(),
+        phone: editPhone.trim() || undefined,
+        communeId: editCommuneId,
+        initiativeName: editInitiativeName.trim() || undefined,
+      });
+      await loadPorteurs();
+      showSuccess(`Les informations de « ${editName} » ont été mises à jour.`);
+      setEditingUser(null);
+    } catch (e: any) {
+      showError(e.message || 'Erreur lors de la mise à jour.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const confirmDelete = () => {
+  // ─── Toggle Status ────────────────────────────────────────────────────────────
+  const handleToggleStatus = async (porteur: UserAccount) => {
+    try {
+      const updated = await UsersController.toggleStatus(porteur.id);
+      setPorteurs(prev => prev.map(p => p.id === porteur.id ? updated : p));
+      const action = updated.status === 'actif' ? 'réactivé' : 'suspendu';
+      showSuccess(`Le compte de « ${porteur.name} » a été ${action}.`);
+    } catch (e: any) {
+      showError(e.message || 'Erreur lors du changement de statut.');
+    }
+  };
+
+  // ─── Delete ───────────────────────────────────────────────────────────────────
+  const confirmDelete = async () => {
     if (!userToDelete) return;
-    deleteUserAccount(userToDelete.id);
-    setSuccessBanner(`Le compte de "${userToDelete.name}" a été définitivement supprimé.`);
-    setUserToDelete(null);
-    setTimeout(() => setSuccessBanner(null), 3500);
+    setSubmitting(true);
+    try {
+      await UsersController.delete(userToDelete.id);
+      setPorteurs(prev => prev.filter(p => p.id !== userToDelete.id));
+      showSuccess(`Le compte de « ${userToDelete.name} » a été définitivement supprimé.`);
+      setUserToDelete(null);
+    } catch (e: any) {
+      showError(e.message || 'Erreur lors de la suppression.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -142,7 +192,7 @@ export const AdminPorteursTab: React.FC = () => {
               Lab'Citoyen • Incubateur
             </span>
             <span className="text-xs text-slate-500 font-semibold">
-              {porteurUsers.length} Porteurs enregistrés
+              {porteurs.length} Porteur{porteurs.length !== 1 ? 's' : ''} enregistré{porteurs.length !== 1 ? 's' : ''}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
@@ -163,6 +213,7 @@ export const AdminPorteursTab: React.FC = () => {
         </button>
       </div>
 
+      {/* Success Banner */}
       {successBanner && (
         <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs font-bold text-emerald-900 flex items-center justify-between animate-in fade-in">
           <div className="flex items-center gap-2">
@@ -170,6 +221,19 @@ export const AdminPorteursTab: React.FC = () => {
             <span>{successBanner}</span>
           </div>
           <button onClick={() => setSuccessBanner(null)} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {errorMsg && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-xs font-bold text-red-900 flex items-center justify-between animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+          <button onClick={() => setErrorMsg(null)} className="text-red-600 hover:text-red-800 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -218,150 +282,158 @@ export const AdminPorteursTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Porteurs Grid / Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredPorteurs.length === 0 ? (
-          <div className="col-span-full p-12 bg-white rounded-3xl border border-dashed border-slate-300 text-center space-y-3">
-            <Users className="w-8 h-8 text-slate-400 mx-auto" />
-            <p className="text-sm font-bold text-slate-600">Aucun porteur d'initiative trouvé.</p>
-            <button
-              onClick={() => { setSearchTerm(''); setCommuneFilter('all'); setStatusFilter('all'); }}
-              className="text-xs font-bold text-emerald-600 hover:underline cursor-pointer"
-            >
-              Réinitialiser les filtres
-            </button>
-          </div>
-        ) : (
-          filteredPorteurs.map(porteur => {
-            const commune = communes.find(c => c.id === porteur.communeId);
-            const associatedInitiative = initiatives.find(i => 
-              i.ownerName.toLowerCase().includes(porteur.name.toLowerCase()) || 
-              (porteur.initiativeName && i.title.toLowerCase().includes(porteur.initiativeName.toLowerCase()))
-            );
-
-            const isSuspended = porteur.status === 'suspendu';
-
-            return (
-              <div
-                key={porteur.id}
-                className={`bg-white rounded-3xl p-6 border transition-all duration-200 shadow-xs flex flex-col justify-between ${
-                  isSuspended ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200 hover:border-emerald-300'
-                }`}
+      {/* Porteurs Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader className="w-8 h-8 text-emerald-500 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredPorteurs.length === 0 ? (
+            <div className="col-span-full p-12 bg-white rounded-3xl border border-dashed border-slate-300 text-center space-y-3">
+              <Users className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="text-sm font-bold text-slate-600">Aucun porteur d'initiative trouvé.</p>
+              <button
+                onClick={() => { setSearchTerm(''); setCommuneFilter('all'); setStatusFilter('all'); }}
+                className="text-xs font-bold text-emerald-600 hover:underline cursor-pointer"
               >
-                <div>
-                  {/* Top user row */}
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#062326] to-[#0E494E] text-emerald-300 font-black text-base flex items-center justify-center shadow-xs">
-                        {porteur.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-black text-slate-900 text-sm sm:text-base leading-tight">
-                            {porteur.name}
-                          </h3>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            isSuspended 
-                              ? 'bg-red-100 text-red-700' 
-                              : 'bg-emerald-100 text-emerald-800'
-                          }`}>
-                            {porteur.status}
+                Réinitialiser les filtres
+              </button>
+            </div>
+          ) : (
+            filteredPorteurs.map(porteur => {
+              const commune = communes.find(c => c.id === porteur.communeId);
+              const associatedInitiative = initiatives.find(i =>
+                i.ownerName?.toLowerCase().includes(porteur.name.toLowerCase()) ||
+                (porteur.initiativeName && i.title.toLowerCase().includes(porteur.initiativeName.toLowerCase()))
+              );
+              const isSuspended = porteur.status === 'suspendu';
+
+              return (
+                <div
+                  key={porteur.id}
+                  className={`bg-white rounded-3xl p-6 border transition-all duration-200 shadow-xs flex flex-col justify-between ${
+                    isSuspended ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200 hover:border-emerald-300'
+                  }`}
+                >
+                  <div>
+                    {/* Top user row */}
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#062326] to-[#0E494E] text-emerald-300 font-black text-base flex items-center justify-center shadow-xs">
+                          {porteur.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-black text-slate-900 text-sm sm:text-base leading-tight">
+                              {porteur.name}
+                            </h3>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                              isSuspended
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {porteur.status}
+                            </span>
+                          </div>
+                          <span className="text-xs font-bold text-slate-500 block mt-0.5">
+                            {commune?.name || 'Commune non spécifiée'}
                           </span>
                         </div>
-                        <span className="text-xs font-bold text-slate-500 block mt-0.5">
-                          {commune?.name || 'Commune non spécifiée'}
-                        </span>
                       </div>
+
+                      {/* Quick status toggle button */}
+                      <button
+                        onClick={() => handleToggleStatus(porteur)}
+                        title={isSuspended ? "Réactiver l'accès" : "Suspendre l'accès"}
+                        className={`p-2 rounded-xl transition-colors cursor-pointer ${
+                          isSuspended
+                            ? 'text-emerald-500 hover:bg-emerald-50 hover:text-emerald-700'
+                            : 'text-red-400 hover:bg-red-50 hover:text-red-600'
+                        }`}
+                      >
+                        {isSuspended
+                          ? <ToggleLeft className="w-5 h-5" />
+                          : <ToggleRight className="w-5 h-5" />
+                        }
+                      </button>
                     </div>
 
-                    {/* Quick status toggle button */}
-                    <button
-                      onClick={() => toggleUserStatus(porteur.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer border ${
-                        isSuspended
-                          ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
-                          : 'bg-slate-50 hover:bg-amber-50 text-slate-700 hover:text-amber-800 border-slate-200 hover:border-amber-300'
-                      }`}
-                      title={isSuspended ? "Réactiver l'accès" : "Suspendre l'accès"}
-                    >
-                      {isSuspended ? '✓ Réactiver' : '⏸ Suspendre'}
-                    </button>
-                  </div>
-
-                  {/* Contact details */}
-                  <div className="space-y-1.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-100 text-xs mb-3">
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                      <span className="truncate">{porteur.email}</span>
-                    </div>
-                    {porteur.phone && (
+                    {/* Contact details */}
+                    <div className="space-y-1.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-100 text-xs mb-3">
                       <div className="flex items-center gap-2 text-slate-700">
-                        <Phone className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                        <span>{porteur.phone}</span>
+                        <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                        <span className="truncate">{porteur.email}</span>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Initiative information */}
-                  <div className="mb-4">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
-                      Initiative accompagnée :
-                    </span>
-                    <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                        <span className="text-xs font-bold text-emerald-950 truncate">
-                          {porteur.initiativeName || 'Projet en cours de labellisation'}
-                        </span>
-                      </div>
-                      {associatedInitiative && (
-                        <button
-                          onClick={() => openInitiativeById(associatedInitiative.id)}
-                          className="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer flex-shrink-0"
-                        >
-                          <span>Voir fiche</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </button>
+                      {porteur.phone && (
+                        <div className="flex items-center gap-2 text-slate-700">
+                          <Phone className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                          <span>{porteur.phone}</span>
+                        </div>
                       )}
                     </div>
+
+                    {/* Initiative information */}
+                    <div className="mb-4">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                        Initiative accompagnée :
+                      </span>
+                      <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <span className="text-xs font-bold text-emerald-950 truncate">
+                            {porteur.initiativeName || 'Projet en cours de labellisation'}
+                          </span>
+                        </div>
+                        {associatedInitiative && (
+                          <button
+                            onClick={() => openInitiativeById(associatedInitiative.id)}
+                            className="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer flex-shrink-0"
+                          >
+                            <span>Voir fiche</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Actions Row */}
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {porteur.lastLogin ? `Dernière connexion : ${porteur.lastLogin}` : 'Jamais connecté'}
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      {/* Modifier */}
+                      <button
+                        onClick={() => handleStartEdit(porteur)}
+                        className="p-2 rounded-xl text-slate-600 hover:text-[#062326] hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Modifier les détails"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+
+                      {/* Supprimer */}
+                      <button
+                        onClick={() => setUserToDelete(porteur)}
+                        className="p-2 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer"
+                        title="Supprimer ce compte porteur"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                {/* Bottom Actions Row */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    Dernière connexion : {porteur.lastLogin || 'Récent'}
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    {/* Modifier */}
-                    <button
-                      onClick={() => handleStartEdit(porteur)}
-                      className="p-2 rounded-xl text-slate-600 hover:text-[#062326] hover:bg-slate-100 transition-colors cursor-pointer"
-                      title="Modifier les détails"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-
-                    {/* Supprimer */}
-                    <button
-                      onClick={() => setUserToDelete(porteur)}
-                      className="p-2 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer"
-                      title="Supprimer ce compte porteur"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+              );
+            })
+          )}
+        </div>
+      )}
 
       {/* Modal 1: Create Porteur */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
               <div className="flex items-center gap-2.5">
@@ -369,12 +441,8 @@ export const AdminPorteursTab: React.FC = () => {
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">
-                    Ajouter un porteur d'initiative
-                  </h3>
-                  <span className="text-xs text-slate-500">
-                    Incubateur Lab'Citoyen Bamako
-                  </span>
+                  <h3 className="text-lg font-black text-slate-900">Ajouter un porteur</h3>
+                  <span className="text-xs text-slate-500">Incubateur Lab'Citoyen Bamako</span>
                 </div>
               </div>
               <button
@@ -405,28 +473,53 @@ export const AdminPorteursTab: React.FC = () => {
                   <label className="font-bold text-slate-700 block mb-1">
                     Adresse e-mail <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="oumar.traore@projet.ml"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-                  />
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="porteur@projet.ml"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">
                     Téléphone WhatsApp
                   </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    <input
+                      type="tel"
+                      placeholder="+223 76 00 00 00"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">
+                  Mot de passe temporaire <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                   <input
-                    type="tel"
-                    placeholder="+223 76 00 00 00"
-                    value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                    type="text"
+                    required
+                    minLength={6}
+                    placeholder="Ex: Porteur@2025!"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
                   />
                 </div>
+                <p className="text-[10px] text-slate-400 mt-1">Le porteur devra le changer à sa première connexion.</p>
               </div>
 
               <div>
@@ -439,7 +532,7 @@ export const AdminPorteursTab: React.FC = () => {
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold cursor-pointer"
                 >
                   {communes.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} ({c.district})</option>
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
@@ -467,8 +560,10 @@ export const AdminPorteursTab: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#062326] text-emerald-300 font-black hover:bg-[#09363B] transition-all cursor-pointer shadow-md"
+                  disabled={submitting}
+                  className="px-5 py-2.5 rounded-xl bg-[#062326] text-emerald-300 font-black hover:bg-[#09363B] transition-all cursor-pointer shadow-md disabled:opacity-60 flex items-center gap-2"
                 >
+                  {submitting && <Loader className="w-4 h-4 animate-spin" />}
                   Enregistrer le compte
                 </button>
               </div>
@@ -479,7 +574,7 @@ export const AdminPorteursTab: React.FC = () => {
 
       {/* Modal 2: Edit Porteur */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
               <div className="flex items-center gap-2.5">
@@ -487,9 +582,7 @@ export const AdminPorteursTab: React.FC = () => {
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">
-                    Modifier le porteur
-                  </h3>
+                  <h3 className="text-lg font-black text-slate-900">Modifier le porteur</h3>
                   <span className="text-xs text-slate-500">{editingUser.name}</span>
                 </div>
               </div>
@@ -524,7 +617,6 @@ export const AdminPorteursTab: React.FC = () => {
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
                   />
                 </div>
-
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Téléphone</label>
                   <input
@@ -569,8 +661,10 @@ export const AdminPorteursTab: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#062326] text-emerald-300 font-black hover:bg-[#09363B] transition-all cursor-pointer shadow-md"
+                  disabled={submitting}
+                  className="px-5 py-2.5 rounded-xl bg-[#062326] text-emerald-300 font-black hover:bg-[#09363B] transition-all cursor-pointer shadow-md disabled:opacity-60 flex items-center gap-2"
                 >
+                  {submitting && <Loader className="w-4 h-4 animate-spin" />}
                   Sauvegarder les modifications
                 </button>
               </div>
@@ -581,7 +675,7 @@ export const AdminPorteursTab: React.FC = () => {
 
       {/* Modal 3: Delete Confirmation */}
       {userToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 text-center space-y-4 animate-in fade-in zoom-in duration-200">
             <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 mx-auto flex items-center justify-center font-bold">
               <AlertCircle className="w-6 h-6" />
@@ -592,7 +686,9 @@ export const AdminPorteursTab: React.FC = () => {
                 Supprimer ce compte porteur ?
               </h3>
               <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Êtes-vous sûr de vouloir supprimer le compte de <strong className="text-slate-900">{userToDelete.name}</strong> ({userToDelete.email}) ? Cette action est irréversible.
+                Êtes-vous sûr de vouloir supprimer le compte de{' '}
+                <strong className="text-slate-900">{userToDelete.name}</strong> ({userToDelete.email}) ?{' '}
+                Cette action est <strong>irréversible</strong>.
               </p>
             </div>
 
@@ -605,8 +701,10 @@ export const AdminPorteursTab: React.FC = () => {
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs transition-all cursor-pointer shadow-md"
+                disabled={submitting}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs transition-all cursor-pointer shadow-md disabled:opacity-60 flex items-center gap-2"
               >
+                {submitting && <Loader className="w-4 h-4 animate-spin" />}
                 Confirmer la suppression
               </button>
             </div>

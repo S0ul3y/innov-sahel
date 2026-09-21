@@ -22,6 +22,17 @@ export class InitiativesService {
     return this.repo.find({ where, order: { createdAt: 'DESC' } });
   }
 
+  // Admin view — porteur voit seulement ses initiatives, admin/super_admin voient tout
+  async findAllAdmin(user: UserEntity, communeId?: string): Promise<InitiativeEntity[]> {
+    const where: any = {};
+    if (communeId) where.communeId = communeId;
+    if (user.role === Role.PORTEUR) {
+      where.ownerUserId = user.id;
+    }
+    return this.repo.find({ where, order: { createdAt: 'DESC' } });
+  }
+
+
   async findOne(id: string): Promise<InitiativeEntity> {
     const item = await this.repo.findOne({ where: { id } });
     if (!item) throw new NotFoundException('Initiative introuvable.');
