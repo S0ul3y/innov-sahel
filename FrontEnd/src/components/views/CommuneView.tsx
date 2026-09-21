@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { InteractiveMap } from '../InteractiveMap';
 import { 
@@ -22,6 +23,9 @@ import {
 import { motion } from 'motion/react';
 
 export const CommuneView: React.FC = () => {
+  const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+
   const { 
     selectedCommune, 
     setSelectedCommuneId, 
@@ -34,6 +38,18 @@ export const CommuneView: React.FC = () => {
   } = useApp();
 
   const [newsFilter, setNewsFilter] = useState<'all' | 'mairie' | 'initiatives'>('all');
+
+  // Synchroniser la commune sélectionnée si l'URL contient un ID de commune (ex: /ma-commune/c2)
+  useEffect(() => {
+    if (id && communes.some(c => c.id === id)) {
+      setSelectedCommuneId(id);
+    }
+  }, [id, communes, setSelectedCommuneId]);
+
+  const handleSelectCommune = (communeId: string) => {
+    setSelectedCommuneId(communeId);
+    navigate(`/ma-commune/${communeId}`);
+  };
 
   // Filter commune data
   const communeInitiatives = initiatives.filter(i => i.communeId === selectedCommune.id);
@@ -76,7 +92,7 @@ export const CommuneView: React.FC = () => {
                 <select
                   id="commune-view-select"
                   value={selectedCommune.id}
-                  onChange={(e) => setSelectedCommuneId(e.target.value)}
+                  onChange={(e) => handleSelectCommune(e.target.value)}
                   className="bg-[#08233C] text-white font-extrabold text-xs sm:text-sm px-3 py-2 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-[#FADB58] cursor-pointer shadow-inner"
                   aria-label="Sélectionner une autre commune"
                 >
@@ -132,7 +148,7 @@ export const CommuneView: React.FC = () => {
                   <button
                     key={c.id}
                     id={`commune-pill-${c.id}`}
-                    onClick={() => setSelectedCommuneId(c.id)}
+                    onClick={() => handleSelectCommune(c.id)}
                     className={`relative p-3 rounded-2xl text-left transition-all duration-200 cursor-pointer flex flex-col justify-between group ${
                       isSelected
                         ? 'bg-white text-[#08233C] shadow-lg scale-102 ring-3 ring-[#FADB58]'

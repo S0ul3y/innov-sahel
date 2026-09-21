@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { 
   MapPin, 
@@ -7,14 +8,19 @@ import {
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     communes, 
     setSelectedCommuneId, 
-    setActiveTab, 
     currentUserRole
   } = useApp();
 
-  const isConnected = currentUserRole === 'admin' || currentUserRole === 'porteur';
+  const isConnected = currentUserRole === 'admin' || currentUserRole === 'super_admin' || currentUserRole === 'porteur';
+
+  const goTo = (path: string) => {
+    navigate(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <footer className="bg-[#08233C] text-white border-t border-[#0B3B60] mt-12 pb-12 pt-12">
@@ -54,8 +60,7 @@ export const Footer: React.FC = () => {
                   key={c.id}
                   onClick={() => {
                     setSelectedCommuneId(c.id);
-                    setActiveTab('ma_commune');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    goTo(`/ma-commune/${c.id}`);
                   }}
                   className="text-left py-1 hover:text-[#38B6FF] transition-colors cursor-pointer"
                 >
@@ -73,7 +78,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-1.5 text-xs text-slate-300">
               <li>
                 <button
-                  onClick={() => { setActiveTab('accueil'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => goTo('/accueil')}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   Accueil
@@ -81,23 +86,23 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
-                  onClick={() => { setActiveTab('ma_commune'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => goTo('/ma-commune')}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
-                  Ma Commune & Mairie
+                  Ma Commune &amp; Mairie
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => { setActiveTab('initiatives'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => goTo('/initiatives')}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
-                  Initiatives jeunes & femmes
+                  Initiatives jeunes &amp; femmes
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => { setActiveTab('actualites'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => goTo('/actualites')}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   Fil d'actualités
@@ -105,9 +110,14 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
-                  onClick={() => { 
-                    setActiveTab(isConnected ? 'mon_espace' : 'connexion'); 
-                    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+                  onClick={() => {
+                    if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
+                      goTo('/admin');
+                    } else if (isConnected) {
+                      goTo('/mon-espace');
+                    } else {
+                      goTo('/connexion');
+                    }
                   }}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
@@ -116,10 +126,10 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
-                  onClick={() => { setActiveTab('a_propos'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => goTo('/a-propos')}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
-                  À propos & Partenaires
+                  À propos &amp; Partenaires
                 </button>
               </li>
             </ul>
@@ -128,7 +138,7 @@ export const Footer: React.FC = () => {
           {/* Col 4: Contact & Permanence Citoyenne */}
           <div className="space-y-3">
             <h4 className="text-xs font-black uppercase tracking-wider text-[#FADB58]">
-              Permanence & Contact
+              Permanence &amp; Contact
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed">
               Coordination générale InnovSahel et points relais dans les 6 mairies du District de Bamako.
@@ -160,10 +170,10 @@ export const Footer: React.FC = () => {
             <span>Bamako, Mali</span>
             <span>•</span>
             <button
-              onClick={() => { setActiveTab('a_propos'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onClick={() => goTo('/a-propos')}
               className="hover:underline text-slate-300"
             >
-              Protection des données & Charte
+              Protection des données &amp; Charte
             </button>
           </div>
         </div>

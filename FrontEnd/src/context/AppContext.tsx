@@ -32,6 +32,38 @@ import {
   INITIAL_USERS 
 } from '../data/mockData';
 import { generateSecurePassword } from '../utils/password.utils';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+export const tabToPath = (tab: TabType): string => {
+  switch (tab) {
+    case 'accueil':
+      return '/accueil';
+    case 'ma_commune':
+      return '/ma-commune';
+    case 'initiatives':
+      return '/initiatives';
+    case 'actualites':
+      return '/actualites';
+    case 'mon_espace':
+      return '/mon-espace';
+    case 'a_propos':
+      return '/a-propos';
+    case 'connexion':
+      return '/connexion';
+    default:
+      return '/accueil';
+  }
+};
+
+export const pathToTab = (pathname: string): TabType => {
+  if (pathname.startsWith('/connexion')) return 'connexion';
+  if (pathname.startsWith('/ma-commune')) return 'ma_commune';
+  if (pathname.startsWith('/initiatives')) return 'initiatives';
+  if (pathname.startsWith('/actualites') || pathname.startsWith('/publications')) return 'actualites';
+  if (pathname.startsWith('/mon-espace') || pathname.startsWith('/admin')) return 'mon_espace';
+  if (pathname.startsWith('/a-propos')) return 'a_propos';
+  return 'accueil';
+};
 
 interface ConfirmationData {
   title: string;
@@ -100,8 +132,17 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Navigation & state
-  const [activeTab, setActiveTab] = useState<TabType>('accueil');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Navigation & state synchronisé avec l'URL
+  const activeTab: TabType = pathToTab(location.pathname);
+
+  const setActiveTab = (tab: TabType) => {
+    setSelectedInitiative(null);
+    setSelectedPublication(null);
+    navigate(tabToPath(tab));
+  };
   const [selectedCommuneId, setSelectedCommuneIdState] = useState<string>(() => {
     return localStorage.getItem('innovsahel_commune') || 'c1';
   });
@@ -137,6 +178,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedInitiative, setSelectedInitiative] = useState<Initiative | null>(null);
   const [selectedPublication, setSelectedPublication] = useState<Publication | null>(null);
   const [confirmationData, setConfirmationData] = useState<ConfirmationData | null>(null);
+
+  // Synchronisation des vues de détail selon l'URL
+  useEffect(() => {
+    if (!location.pathname.startsWith('/initiatives/')) {
+      setSelectedInitiative(null);
+    }
+    if (!location.pathname.startsWith('/actualites/') && !location.pathname.startsWith('/publications/')) {
+      setSelectedPublication(null);
+    }
+  }, [location.pathname]);
 
   // Charger les données initiales depuis le Backend NestJS
   const refreshData = useCallback(async () => {
@@ -264,7 +315,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAuthUser(res.user);
       setCurrentUserRole(res.user.role);
       setCurrentUserId(res.user.id);
-      setActiveTab('mon_espace');
+      
+      if (res.user.role === 'admin' || res.user.role === 'super_admin') {
+        navigate('/admin');
+      } else {
+        navigate('/mon-espace');
+      }
       
       // Recharger les données complètes pour l'espace d'administration
       if (res.user.role === 'admin' || res.user.role === 'super_admin') {
@@ -307,7 +363,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       setCurrentUserId(users[1]?.id || 'u-porteur-1');
     }
-    setActiveTab('mon_espace');
+    if (role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/mon-espace');
+    }
   };
 
   const logout = () => {
@@ -315,7 +375,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuthUser(null);
     setCurrentUserRole('visitor');
     setCurrentUserId(null);
-    setActiveTab('accueil');
+    setSelectedInitiative(null);
+    setSelectedPublication(null);
+    navigate('/accueil');
   };
 
   // ─── Actions avec persistance MySQL ───────────────────────────
@@ -560,8 +622,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (init) {
       setSelectedInitiative(init);
       setSelectedPublication(null);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    navigate(`/initiatives/${id}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const openPublicationById = (id: string) => {
@@ -569,8 +632,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (pub) {
       setSelectedPublication(pub);
       setSelectedInitiative(null);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    navigate(`/actualites/${id}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (

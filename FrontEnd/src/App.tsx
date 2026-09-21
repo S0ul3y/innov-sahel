@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { FloatingActionButton } from './components/FloatingActionButton';
@@ -29,70 +30,33 @@ import { PublishModal } from './components/modals/PublishModal';
 
 import { motion, AnimatePresence } from 'motion/react';
 
-const MainLayout: React.FC = () => {
-  const { 
-    activeTab, 
-    activeModal, 
-    selectedInitiative, 
-    selectedPublication,
-    currentUserRole
-  } = useApp();
-
-  // ISOLATION ESPACE ADMIN:
-  // "Sur l'espace admin, on ne verra rien de ce qui concerne la plateforme comme les pages d'accueil et autre sur la navbar et tout autre sur l'espace citoyen."
-  if ((currentUserRole === 'admin' || currentUserRole === 'super_admin') && activeTab === 'mon_espace' && !selectedPublication && !selectedInitiative) {
-    return (
-      <div className="min-h-screen bg-[#F8FAFC]">
-        <AdminDashboardView />
-
-        {/* Action Modals if triggered from admin actions */}
-        {activeModal === 'confirmation' && <ConfirmationModal />}
-        {activeModal === 'idea' && <IdeaModal />}
-        {activeModal === 'problem' && <ProblemModal />}
-        {activeModal === 'publish' && <PublishModal />}
-      </div>
-    );
-  }
+/** Layout citoyen : Header + contenu animé + Footer + modals */
+const CitizenLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { activeModal } = useApp();
+  const location = useLocation();
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800 selection:bg-[#FADB58] selection:text-[#08233C]">
-      {/* Persistent Header with Responsive Navbar and Scrollable Hamburger Menu */}
       <Header />
 
-      {/* Main Content Area - Full-Page Detail Views or Tab Navigation */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
-        {selectedPublication ? (
-          <PublicationDetailView />
-        ) : selectedInitiative ? (
-          <InitiativeDetailView />
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              {activeTab === 'accueil' && <HomeView />}
-              {activeTab === 'ma_commune' && <CommuneView />}
-              {activeTab === 'initiatives' && <InitiativesView />}
-              {activeTab === 'actualites' && <NewsView />}
-              {activeTab === 'mon_espace' && <DashboardView />}
-              {activeTab === 'a_propos' && <AboutView />}
-              {activeTab === 'connexion' && <LoginView />}
-            </motion.div>
-          </AnimatePresence>
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
-      {/* Persistent Footer */}
       <Footer />
-
-      {/* Floating Action Button (Mobile & Desktop) */}
       <FloatingActionButton />
 
-      {/* Citizen Action Modals (Forms only, detail views are now full-page) */}
+      {/* Modals citoyens */}
       {activeModal === 'confirmation' && <ConfirmationModal />}
       {activeModal === 'idea' && <IdeaModal />}
       {activeModal === 'problem' && <ProblemModal />}
@@ -101,10 +65,100 @@ const MainLayout: React.FC = () => {
   );
 };
 
+/** Layout admin : pas de Header/Footer citoyen */
+const AdminLayout: React.FC = () => {
+  const { activeModal } = useApp();
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <AdminDashboardView />
+
+      {/* Modals éventuellement déclenchés depuis l'admin */}
+      {activeModal === 'confirmation' && <ConfirmationModal />}
+      {activeModal === 'idea' && <IdeaModal />}
+      {activeModal === 'problem' && <ProblemModal />}
+      {activeModal === 'publish' && <PublishModal />}
+    </div>
+  );
+};
+
+/** Guard : redirige vers /connexion si non authentifié en tant qu'admin */
+const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentUserRole } = useApp();
+  if (currentUserRole !== 'admin' && currentUserRole !== 'super_admin') {
+    return <Navigate to="/connexion" replace />;
+  }
+  return <>{children}</>;
+};
+
+/** Guard : redirige vers /connexion si non connecté (porteur ou admin) */
+const PorteurGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentUserRole } = useApp();
+  if (currentUserRole === 'visitor') {
+    return <Navigate to="/connexion" replace />;
+  }
+  // Admins ont leur propre espace
+  if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
+    return <Navigate to="/admin" replace />;
+  }
+  return <>{children}</>;
+};
+
+const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+      {/* Redirection racine */}
+      <Route path="/" element={<Navigate to="/accueil" replace />} />
+
+      {/* Pages citoyennes publiques */}
+      <Route path="/accueil" element={<CitizenLayout><HomeView /></CitizenLayout>} />
+      <Route path="/connexion" element={<CitizenLayout><LoginView /></CitizenLayout>} />
+      <Route path="/a-propos" element={<CitizenLayout><AboutView /></CitizenLayout>} />
+
+      {/* Ma Commune : avec ou sans ID de commune */}
+      <Route path="/ma-commune" element={<CitizenLayout><CommuneView /></CitizenLayout>} />
+      <Route path="/ma-commune/:id" element={<CitizenLayout><CommuneView /></CitizenLayout>} />
+
+      {/* Initiatives : liste et détail */}
+      <Route path="/initiatives" element={<CitizenLayout><InitiativesView /></CitizenLayout>} />
+      <Route path="/initiatives/:id" element={<CitizenLayout><InitiativeDetailView /></CitizenLayout>} />
+
+      {/* Actualités : liste et détail */}
+      <Route path="/actualites" element={<CitizenLayout><NewsView /></CitizenLayout>} />
+      <Route path="/actualites/:id" element={<CitizenLayout><PublicationDetailView /></CitizenLayout>} />
+      {/* Alias pour compatibilité */}
+      <Route path="/publications/:id" element={<CitizenLayout><PublicationDetailView /></CitizenLayout>} />
+
+      {/* Mon Espace Porteur d'initiative */}
+      <Route
+        path="/mon-espace"
+        element={
+          <PorteurGuard>
+            <CitizenLayout><DashboardView /></CitizenLayout>
+          </PorteurGuard>
+        }
+      />
+
+      {/* Espace Admin (isolé, sans layout citoyen) */}
+      <Route
+        path="/admin"
+        element={
+          <AdminGuard>
+            <AdminLayout />
+          </AdminGuard>
+        }
+      />
+
+      {/* Fallback 404 → accueil */}
+      <Route path="*" element={<Navigate to="/accueil" replace />} />
+    </Routes>
+  );
+};
+
 export default function App() {
   return (
     <AppProvider>
-      <MainLayout />
+      <AppRoutes />
     </AppProvider>
   );
 }

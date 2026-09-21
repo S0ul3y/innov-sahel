@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -22,9 +23,13 @@ import {
 import { motion } from 'motion/react';
 
 export const PublicationDetailView: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
   const { 
-    selectedPublication, 
+    selectedPublication: contextPublication, 
     setSelectedPublication, 
+    publications,
     communes, 
     setSelectedCommuneId, 
     setActiveTab, 
@@ -32,6 +37,10 @@ export const PublicationDetailView: React.FC = () => {
     addComment,
     currentUserRole 
   } = useApp();
+
+  const selectedPublication = (contextPublication && (!id || contextPublication.id === id))
+    ? contextPublication
+    : publications.find(p => p.id === id) || contextPublication;
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [commentName, setCommentName] = useState('');
@@ -43,7 +52,22 @@ export const PublicationDetailView: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [selectedPublication]);
 
-  if (!selectedPublication) return null;
+  if (!selectedPublication) {
+    return (
+      <div className="w-full max-w-2xl mx-auto text-center py-20 bg-white rounded-3xl border border-slate-200 p-8 shadow-xs my-8 space-y-4">
+        <Sparkles className="w-12 h-12 text-amber-500 mx-auto" />
+        <h2 className="text-xl font-extrabold text-slate-800">Actualité introuvable</h2>
+        <p className="text-xs text-slate-500">L'actualité demandée n'existe pas ou a été déplacée.</p>
+        <button
+          onClick={() => navigate('/actualites')}
+          className="px-4 py-2 bg-[#08233C] text-white rounded-xl text-xs font-bold hover:bg-[#0B3B60] transition-colors inline-flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Voir toutes les actualités</span>
+        </button>
+      </div>
+    );
+  }
 
   const commune = communes.find(c => c.id === selectedPublication.communeId);
   const pubComments = comments.filter(c => c.publicationId === selectedPublication.id);
@@ -92,7 +116,10 @@ export const PublicationDetailView: React.FC = () => {
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <button
           id="btn-back-to-news"
-          onClick={() => setSelectedPublication(null)}
+          onClick={() => {
+            setSelectedPublication(null);
+            navigate('/actualites');
+          }}
           className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#08233C] font-bold text-xs sm:text-sm transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -142,7 +169,7 @@ export const PublicationDetailView: React.FC = () => {
                 onClick={() => {
                   setSelectedCommuneId(selectedPublication.communeId);
                   setSelectedPublication(null);
-                  setActiveTab('ma_commune');
+                  navigate('/ma-commune/' + selectedPublication.communeId);
                 }}
                 className="bg-slate-100 hover:bg-slate-200 text-[#08233C] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 transition-colors cursor-pointer"
               >
@@ -275,7 +302,10 @@ export const PublicationDetailView: React.FC = () => {
           {/* Social Share & Return footer banner */}
           <div className="pt-8 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
             <button
-              onClick={() => setSelectedPublication(null)}
+              onClick={() => {
+                setSelectedPublication(null);
+                navigate('/actualites');
+              }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#08233C] text-white font-extrabold text-xs sm:text-sm hover:bg-[#0B3B60] transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
