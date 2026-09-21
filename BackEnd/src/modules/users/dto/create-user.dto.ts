@@ -28,9 +28,10 @@ export class CreateUserDto {
   @IsString()
   initiativeName?: string;
 
-  // Mot de passe temporaire — le porteur devra le changer à sa 1ère connexion
-  @ApiProperty({ example: 'TempPass123!', description: 'Mot de passe temporaire' })
+  // Mot de passe temporaire — proposé par défaut ou personnalisé (auto-généré si omis)
+  @ApiProperty({ example: 'TempPass123!', description: 'Mot de passe temporaire (optionnel, auto-généré si non renseigné)', required: false })
+  @IsOptional()
   @IsString()
   @MinLength(6)
-  temporaryPassword: string;
+  temporaryPassword?: string;
 }

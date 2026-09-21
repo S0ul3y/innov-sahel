@@ -18,8 +18,9 @@ export class CreateAdminDto {
   @IsString()
   phone?: string;
 
-  @ApiProperty({ example: 'TempAdmin123!', description: 'Mot de passe temporaire' })
+  @ApiProperty({ example: 'TempAdmin123!', description: 'Mot de passe temporaire (optionnel, auto-généré si non renseigné)', required: false })
+  @IsOptional()
   @IsString()
   @MinLength(6)
-  temporaryPassword: string;
+  temporaryPassword?: string;
 }

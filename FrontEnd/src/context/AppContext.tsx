@@ -31,6 +31,7 @@ import {
   INITIAL_CONTRIBUTIONS, 
   INITIAL_USERS 
 } from '../data/mockData';
+import { generateSecurePassword } from '../utils/password.utils';
 
 interface ConfirmationData {
   title: string;
@@ -85,7 +86,7 @@ interface AppContextType {
   reportComment: (id: string) => Promise<void>;
   deleteComment: (id: string) => Promise<void>;
   updateInitiative: (id: string, partial: Partial<Initiative>) => Promise<void>;
-  createUserAccount: (account: Omit<UserAccount, 'id'>) => Promise<void>;
+  createUserAccount: (account: Omit<UserAccount, 'id'> & { temporaryPassword?: string }) => Promise<void>;
   updateUserAccount: (id: string, partial: Partial<UserAccount>) => Promise<void>;
   deleteUserAccount: (id: string) => Promise<void>;
   toggleUserStatus: (id: string) => Promise<void>;
@@ -495,7 +496,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Utilisateurs porteurs
-  const createUserAccount = async (account: Omit<UserAccount, 'id'>) => {
+  const createUserAccount = async (account: Omit<UserAccount, 'id'> & { temporaryPassword?: string }) => {
+    const tempPassword = account.temporaryPassword || generateSecurePassword();
     try {
       const created = await UsersController.create({
         name: account.name,
@@ -503,6 +505,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         phone: account.phone,
         communeId: account.communeId,
         initiativeName: account.initiativeName,
+        temporaryPassword: tempPassword,
       });
       setUsers(prev => [...prev, created]);
     } catch (e) {

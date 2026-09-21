@@ -21,7 +21,16 @@ import {
   Loader,
   ToggleLeft,
   ToggleRight,
+  RefreshCw,
+  Copy,
+  Check,
+  Eye,
+  EyeOff,
+  Send,
+  Key,
+  ShieldCheck,
 } from 'lucide-react';
+import { generateSecurePassword } from '../../utils/password.utils';
 
 export const AdminPorteursTab: React.FC = () => {
   const { communes, initiatives, openInitiativeById } = useApp();
@@ -50,6 +59,41 @@ export const AdminPorteursTab: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newCommuneId, setNewCommuneId] = useState(communes[0]?.id || 'c1');
   const [newInitiativeName, setNewInitiativeName] = useState('');
+  const [showCreatePassword, setShowCreatePassword] = useState(true);
+  const [passwordCopied, setPasswordCopied] = useState(false);
+
+  // ─── Success Recap Modal ──────────────────────────────────────────────────────
+  const [createdSuccessModal, setCreatedSuccessModal] = useState<{
+    name: string;
+    email: string;
+    password: string;
+    communeName: string;
+    initiativeName?: string;
+  } | null>(null);
+  const [modalPasswordCopied, setModalPasswordCopied] = useState(false);
+
+  const handleOpenCreateModal = () => {
+    setNewName('');
+    setNewEmail('');
+    setNewPhone('');
+    setNewPassword(generateSecurePassword());
+    setNewCommuneId(communes[0]?.id || 'c1');
+    setNewInitiativeName('');
+    setShowCreatePassword(true);
+    setPasswordCopied(false);
+    setIsCreateModalOpen(true);
+  };
+
+  const handleRegeneratePassword = () => {
+    setNewPassword(generateSecurePassword());
+  };
+
+  const handleCopyPassword = () => {
+    if (!newPassword) return;
+    navigator.clipboard.writeText(newPassword);
+    setPasswordCopied(true);
+    setTimeout(() => setPasswordCopied(false), 2000);
+  };
 
   // ─── Edit Form ────────────────────────────────────────────────────────────────
   const [editName, setEditName] = useState('');
@@ -103,16 +147,24 @@ export const AdminPorteursTab: React.FC = () => {
     if (!newName.trim() || !newEmail.trim() || !newPassword.trim()) return;
     setSubmitting(true);
     try {
-      await UsersController.create({
+      const created = await UsersController.create({
         name: newName.trim(),
         email: newEmail.trim().toLowerCase(),
         phone: newPhone.trim() || undefined,
-        temporaryPassword: newPassword,
+        temporaryPassword: newPassword.trim(),
         communeId: newCommuneId,
         initiativeName: newInitiativeName.trim() || undefined,
       });
       await loadPorteurs();
-      showSuccess(`Le compte porteur de « ${newName} » a été créé avec succès. Le porteur peut se connecter avec le mot de passe temporaire fourni.`);
+      const communeObj = communes.find(c => c.id === newCommuneId);
+      setCreatedSuccessModal({
+        name: created.name,
+        email: created.email,
+        password: newPassword.trim(),
+        communeName: communeObj ? communeObj.name : newCommuneId,
+        initiativeName: newInitiativeName.trim() || undefined,
+      });
+      showSuccess(`✅ Le compte porteur de « ${newName} » a été enregistré en base de données. Identifiants envoyés par email.`);
       setIsCreateModalOpen(false);
       setNewName(''); setNewEmail(''); setNewPhone(''); setNewPassword(''); setNewInitiativeName('');
     } catch (e: any) {
@@ -205,7 +257,7 @@ export const AdminPorteursTab: React.FC = () => {
 
         <button
           id="admin-create-porteur-btn"
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={handleOpenCreateModal}
           className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#062326] hover:bg-[#093539] text-emerald-300 font-black text-xs shadow-md transition-all cursor-pointer active:scale-95 flex-shrink-0"
         >
           <UserPlus className="w-4 h-4 text-emerald-400" />
@@ -504,22 +556,87 @@ export const AdminPorteursTab: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">
-                  Mot de passe temporaire <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <label className="font-bold text-slate-700 text-xs sm:text-sm">
+                      Mot de passe par défaut <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" />
+                      Proposé & modifiable
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleRegeneratePassword}
+                      className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
+                      title="Générer un autre mot de passe aléatoire conforme"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Regénérer</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyPassword}
+                      className="flex items-center gap-1 text-[11px] font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
+                      title="Copier le mot de passe dans le presse-papier"
+                    >
+                      {passwordCopied ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-600" />
+                          <span className="text-emerald-700 font-bold">Copié !</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span>Copier</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
                   <input
-                    type="text"
+                    type={showCreatePassword ? 'text' : 'password'}
                     required
                     minLength={6}
-                    placeholder="Ex: Porteur@2025!"
+                    placeholder="Génération en cours..."
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                    className="w-full pl-9 pr-10 py-2.5 bg-emerald-50/30 border border-emerald-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-sm tracking-wider font-semibold shadow-inner"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowCreatePassword(!showCreatePassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                    title={showCreatePassword ? 'Masquer' : 'Afficher'}
+                  >
+                    {showCreatePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">Le porteur devra le changer à sa première connexion.</p>
+
+                {/* Composition Checklist */}
+                <div className="mt-2 p-2 bg-slate-50 border border-slate-200/80 rounded-xl flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-600 font-medium">
+                  <span className="text-slate-400 font-bold">Composition :</span>
+                  <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                    <CheckCircle2 className="w-3 h-3" /> Lettres (A-Z, a-z)
+                  </span>
+                  <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                    <CheckCircle2 className="w-3 h-3" /> Chiffres (0-9)
+                  </span>
+                  <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                    <CheckCircle2 className="w-3 h-3" /> Symboles spéciaux (!@#$)
+                  </span>
+                  <span className="text-slate-400 italic">| Vous pouvez l'éditer librement</span>
+                </div>
+
+                <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1.5 font-medium">
+                  <Send className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                  <span>Ce mot de passe sera enregistré en base de données et envoyé par email au porteur.</span>
+                </p>
               </div>
 
               <div>
@@ -706,6 +823,110 @@ export const AdminPorteursTab: React.FC = () => {
               >
                 {submitting && <Loader className="w-4 h-4 animate-spin" />}
                 Confirmer la suppression
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 4: Account Creation Success Recap */}
+      {createdSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-emerald-200 text-left space-y-5 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold flex-shrink-0 shadow-xs">
+                <ShieldCheck className="w-7 h-7 text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                  Enregistrement Base de Données
+                </span>
+                <h3 className="text-xl font-black text-slate-900 mt-1">
+                  Compte Porteur créé avec succès !
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  L'utilisateur a été enregistré dans la base de données et ses identifiants ont été envoyés par email.
+                </p>
+              </div>
+            </div>
+
+            {/* Recap Card */}
+            <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200/90 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 text-xs">
+                <span className="text-slate-500 font-bold">Nom complet :</span>
+                <span className="font-extrabold text-slate-900">{createdSuccessModal.name}</span>
+              </div>
+
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2.5 text-xs">
+                <span className="text-slate-500 font-bold">Email de connexion :</span>
+                <span className="font-mono font-bold text-slate-800 bg-white px-2 py-1 rounded border border-slate-200">
+                  {createdSuccessModal.email}
+                </span>
+              </div>
+
+              <div className="border-b border-slate-200 pb-2.5">
+                <div className="flex items-center justify-between mb-1 text-xs">
+                  <span className="text-slate-500 font-bold flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-emerald-600" />
+                    Mot de passe temporaire :
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(createdSuccessModal.password);
+                      setModalPasswordCopied(true);
+                      setTimeout(() => setModalPasswordCopied(false), 2500);
+                    }}
+                    className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                  >
+                    {modalPasswordCopied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Copié !</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copier mot de passe</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="p-2.5 bg-emerald-50/60 border border-emerald-300 rounded-xl font-mono text-sm text-emerald-900 font-bold text-center tracking-wider">
+                  {createdSuccessModal.password}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-1">
+                <span className="text-slate-500 font-bold">Commune :</span>
+                <span className="font-bold text-slate-800">{createdSuccessModal.communeName}</span>
+              </div>
+
+              {createdSuccessModal.initiativeName && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-bold">Initiative :</span>
+                  <span className="font-medium text-slate-700">{createdSuccessModal.initiativeName}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Explanatory note */}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-2.5 text-[11px] text-blue-900 leading-relaxed">
+              <Send className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p>
+                Un email de bienvenue contenant ces accès et le lien de connexion a été transmis au porteur. Il pourra se connecter immédiatement à son espace.
+              </p>
+            </div>
+
+            {/* Footer Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setCreatedSuccessModal(null)}
+                className="w-full py-3 bg-[#062326] hover:bg-[#093539] text-white rounded-xl font-extrabold text-sm shadow-md transition-all cursor-pointer text-center"
+              >
+                Compris & Fermer
               </button>
             </div>
           </div>

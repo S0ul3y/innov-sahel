@@ -13,12 +13,18 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from '../../common/enums/role.enum';
+import { NotificationsService } from '../notifications/notifications.service';
+import { generateSecurePassword } from '../../common/utils/password.utils';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // ─── Créer un porteur (Super Admin ou Admin) ─────────────────────────────────
@@ -30,8 +36,14 @@ export class UsersService {
       throw new ConflictException('Un compte avec cet email existe déjà.');
     }
 
+    // Proposer le mot de passe reçu (modifiable) ou en générer un par défaut
+    const plainPassword =
+      dto.temporaryPassword && dto.temporaryPassword.trim().length >= 6
+        ? dto.temporaryPassword.trim()
+        : generateSecurePassword();
+
     const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(dto.temporaryPassword, salt);
+    const hashedPassword = await bcrypt.hash(plainPassword, salt);
 
     const user = this.userRepository.create({
       name: dto.name,
@@ -47,6 +59,15 @@ export class UsersService {
     });
 
     const saved = await this.userRepository.save(user);
+    this.logger.log(`Porteur créé et enregistré en base de données : ${saved.name} (${saved.email})`);
+
+    // Envoyer l'email de bienvenue avec les identifiants
+    this.notificationsService
+      .sendPorteurWelcome(saved.email, saved.name, plainPassword)
+      .catch((err) => {
+        this.logger.warn(`Erreur lors de l'envoi d'email au porteur ${saved.email}: ${err?.message}`);
+      });
+
     const { password, ...result } = saved;
     return result;
   }
@@ -60,8 +81,14 @@ export class UsersService {
       throw new ConflictException('Un compte avec cet email existe déjà.');
     }
 
+    // Proposer le mot de passe reçu (modifiable) ou en générer un par défaut
+    const plainPassword =
+      dto.temporaryPassword && dto.temporaryPassword.trim().length >= 6
+        ? dto.temporaryPassword.trim()
+        : generateSecurePassword();
+
     const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(dto.temporaryPassword, salt);
+    const hashedPassword = await bcrypt.hash(plainPassword, salt);
 
     const user = this.userRepository.create({
       name: dto.name,
@@ -75,6 +102,15 @@ export class UsersService {
     });
 
     const saved = await this.userRepository.save(user);
+    this.logger.log(`Admin créé et enregistré en base de données : ${saved.name} (${saved.email})`);
+
+    // Envoyer l'email de bienvenue avec les identifiants
+    this.notificationsService
+      .sendAdminWelcome(saved.email, saved.name, plainPassword)
+      .catch((err) => {
+        this.logger.warn(`Erreur lors de l'envoi d'email à l'admin ${saved.email}: ${err?.message}`);
+      });
+
     const { password, ...result } = saved;
     return result;
   }
