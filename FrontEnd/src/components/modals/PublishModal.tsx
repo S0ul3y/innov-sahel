@@ -23,6 +23,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { ImageUpload, MultiImageUpload } from '../shared/ImageUpload';
 
 export const PublishModal: React.FC = () => {
   const { 
@@ -322,15 +323,10 @@ export const PublishModal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-800 mb-1">
-                      Image mise en avant (Vignette) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
+                    <ImageUpload
                       value={coverImage}
-                      onChange={(e) => setCoverImage(e.target.value)}
-                      placeholder="URL de l'image de couverture"
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]"
+                      onChange={(url) => setCoverImage(url)}
+                      label="Image mise en avant (Vignette) *"
                     />
                   </div>
                 </div>
@@ -370,58 +366,12 @@ export const PublishModal: React.FC = () => {
 
                 {/* Format Spécifique : Carrousel ou Vidéo */}
                 {format === 'carousel' ? (
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#08233C] flex items-center gap-1.5">
-                        <Images className="w-4 h-4 text-[#38B6FF]" />
-                        Images du carrousel ({carouselImages.length})
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {carouselImages.map((img, idx) => (
-                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-300 bg-white p-1">
-                          <img src={img.url} alt="" className="h-20 w-full object-cover rounded-lg" />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveCarouselImage(idx)}
-                            className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-md text-xs opacity-80 hover:opacity-100 cursor-pointer"
-                            title="Supprimer cette image"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="text-[10px] text-slate-600 truncate block px-1 mt-0.5">
-                            {img.caption || `Photo n°${idx + 1}`}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Add Image input */}
-                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                      <input
-                        type="text"
-                        placeholder="URL de la photo à ajouter..."
-                        value={newImageUrl}
-                        onChange={(e) => setNewImageUrl(e.target.value)}
-                        className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#38B6FF]"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Légende (facultative)"
-                        value={newImageCaption}
-                        onChange={(e) => setNewImageCaption(e.target.value)}
-                        className="sm:w-44 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#38B6FF]"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddCarouselImage}
-                        className="px-3 py-1.5 bg-[#08233C] text-white rounded-lg text-xs font-bold hover:bg-[#0B3B60] flex items-center justify-center gap-1 cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Ajouter</span>
-                      </button>
-                    </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                    <MultiImageUpload
+                      value={carouselImages}
+                      onChange={(imgs) => setCarouselImages(imgs)}
+                      label="Images du carrousel (optimisées automatiquement en WebP)"
+                    />
                   </div>
                 ) : (
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">

@@ -10,8 +10,11 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // ─── Fichiers statiques (images uploadées) ────────────────
+  // ─── Fichiers statiques — images uploadées (système centralisé) ──────────
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
+  app.useStaticAssets(join(process.cwd(), 'uploads', 'Images', 'optimized'), { prefix: '/images/optimized' });
+  app.useStaticAssets(join(process.cwd(), 'uploads', 'Images', 'thumbnails'), { prefix: '/images/thumbnails' });
+
 
   // ─── Préfixe global ───────────────────────────────────────
   app.setGlobalPrefix('api');

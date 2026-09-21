@@ -13,9 +13,11 @@ import {
   Sun, 
   Palette, 
   MoreHorizontal,
-  Check
+  Check,
+  Loader
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { UploadsController } from '../../controllers/uploadsController';
 
 const CATEGORIES = [
   { id: 'Jeunesse', label: 'Jeunesse & Emploi', icon: Users },
@@ -38,6 +40,7 @@ export const IdeaModal: React.FC = () => {
   const [photoUrl, setPhotoUrl] = useState<string>('');
   const [citizenName, setCitizenName] = useState<string>('');
   const [citizenPhone, setCitizenPhone] = useState<string>('');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   if (activeModal !== 'idea') return null;
@@ -67,12 +70,19 @@ export const IdeaModal: React.FC = () => {
     setError('');
   };
 
-  const handleSimulatedImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Create local preview URL
-      const objectUrl = URL.createObjectURL(file);
-      setPhotoUrl(objectUrl);
+    if (!file) return;
+    setError('');
+    setIsUploadingPhoto(true);
+    try {
+      const res = await UploadsController.uploadPublicImage(file);
+      setPhotoUrl(res.url);
+    } catch (err: any) {
+      console.warn('Erreur upload photo citoyenne:', err);
+      setError(err?.message || "Impossible d'enregistrer l'image. Vous pouvez soumettre sans photo.");
+    } finally {
+      setIsUploadingPhoto(false);
     }
   };
 
@@ -189,22 +199,36 @@ export const IdeaModal: React.FC = () => {
               </label>
               <div className="flex items-center gap-3">
                 <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 rounded-xl p-3 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer text-xs font-medium text-slate-600">
-                  <Upload className="w-4 h-4 text-slate-500" />
-                  <span>{photoUrl ? 'Changer la photo' : 'Prendre ou choisir une photo'}</span>
+                  {isUploadingPhoto ? (
+                    <Loader className="w-4 h-4 text-amber-600 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4 text-slate-500" />
+                  )}
+                  <span>
+                    {isUploadingPhoto
+                      ? 'Optimisation et traitement...'
+                      : (photoUrl ? 'Changer la photo' : 'Prendre ou choisir une photo')}
+                  </span>
                   <input
                     type="file"
-                    accept="image/*"
-                    onChange={handleSimulatedImageUpload}
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    disabled={isUploadingPhoto}
+                    onChange={handleImageUpload}
                     className="hidden"
                   />
                 </label>
                 {photoUrl && (
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0">
-                    <img src={photoUrl} alt="Aperçu" className="w-full h-full object-cover" />
+                    <img 
+                      src={photoUrl.startsWith('http') ? photoUrl : UploadsController.getImageUrl(photoUrl)} 
+                      alt="Aperçu" 
+                      className="w-full h-full object-cover" 
+                    />
                     <button
                       type="button"
                       onClick={() => setPhotoUrl('')}
-                      className="absolute inset-0 bg-black/40 text-white flex items-center justify-center text-xs"
+                      className="absolute inset-0 bg-black/40 text-white flex items-center justify-center text-xs hover:bg-black/60"
+                      title="Supprimer la photo"
                     >
                       ✕
                     </button>

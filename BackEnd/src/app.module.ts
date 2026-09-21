@@ -15,6 +15,7 @@ import { ContributionsModule } from './modules/contributions/contributions.modul
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { MediaModule } from './modules/media/media.module';
 
 
 @Module({
@@ -56,6 +57,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
     DashboardModule,
     NotificationsModule,
     UploadsModule,
+    MediaModule,
   ],
 })
 export class AppModule {}

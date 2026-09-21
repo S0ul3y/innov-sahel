@@ -9,66 +9,72 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { memoryStorage } from 'multer';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../../common/enums/role.enum';
+import { MediaService } from '../media/media.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UserEntity } from '../users/entities/user.entity';
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-
-const storageConfig = diskStorage({
-  destination: './uploads',
-  filename: (_req, file, cb) => {
-    const uniqueName = `${uuidv4()}${extname(file.originalname)}`;
-    cb(null, uniqueName);
-  },
-});
-
-const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
-  if (!ALLOWED_TYPES.includes(file.mimetype)) {
-    return cb(new BadRequestException('Format non supporté. Utilisez JPG, PNG ou WebP.'), false);
-  }
-  cb(null, true);
-};
+const memStorage = memoryStorage();
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 @ApiTags('Uploads')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('uploads')
 export class UploadsController {
+  constructor(private readonly mediaService: MediaService) {}
 
   // ─── POST /api/uploads/image ── Upload d'une image unique ────────────────────
   @Post('image')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.PORTEUR)
-  @UseInterceptors(FileInterceptor('file', { storage: storageConfig, fileFilter, limits: { fileSize: MAX_FILE_SIZE } }))
-  @ApiOperation({ summary: 'Téléverser une image unique' })
+  @ApiBearerAuth('JWT-auth')
+  @UseInterceptors(FileInterceptor('file', { storage: memStorage, limits: { fileSize: MAX_FILE_SIZE } }))
+  @ApiOperation({ summary: 'Téléverser une image unique (traitement Sharp centralisé)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
-  uploadSingle(@UploadedFile() file: Express.Multer.File) {
+  async uploadSingle(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: UserEntity,
+  ) {
     if (!file) throw new BadRequestException('Aucun fichier fourni.');
+    const result = await this.mediaService.processAndSave(file, {
+      uploadedBy: user.id,
+      role: 'cover',
+    });
     return {
-      url: `/uploads/${file.filename}`,
+      url: result.url,
+      thumbnailUrl: result.thumbnailUrl,
       originalName: file.originalname,
-      size: file.size,
+      size: result.asset.size,
     };
   }
 
   // ─── POST /api/uploads/images ── Upload multiple (carrousel) ─────────────────
   @Post('images')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.PORTEUR)
-  @UseInterceptors(FilesInterceptor('files', 20, { storage: storageConfig, fileFilter, limits: { fileSize: MAX_FILE_SIZE } }))
-  @ApiOperation({ summary: 'Téléverser plusieurs images (carrousel)' })
+  @ApiBearerAuth('JWT-auth')
+  @UseInterceptors(FilesInterceptor('files', 10, { storage: memStorage, limits: { fileSize: MAX_FILE_SIZE } }))
+  @ApiOperation({ summary: 'Téléverser plusieurs images (carrousel avec Sharp centralisé)' })
   @ApiConsumes('multipart/form-data')
-  uploadMultiple(@UploadedFiles() files: Express.Multer.File[]) {
+  async uploadMultiple(
+    @UploadedFiles() files: Express.Multer.File[],
+    @CurrentUser() user: UserEntity,
+  ) {
     if (!files || files.length === 0) throw new BadRequestException('Aucun fichier fourni.');
-    return files.map((file) => ({
-      url: `/uploads/${file.filename}`,
-      originalName: file.originalname,
-      size: file.size,
+    const results = await this.mediaService.processAndSaveMultiple(files, {
+      uploadedBy: user.id,
+      role: 'gallery',
+    });
+    return results.map((r, i) => ({
+      url: r.url,
+      thumbnailUrl: r.thumbnailUrl,
+      originalName: files[i].originalname,
+      size: r.asset.size,
     }));
   }
 }
+

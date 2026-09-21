@@ -3,9 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { InitiativesController } from './initiatives.controller';
 import { InitiativesService } from './initiatives.service';
 import { InitiativeEntity } from './entities/initiative.entity';
+import { MediaModule } from '../media/media.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([InitiativeEntity])],
+  imports: [TypeOrmModule.forFeature([InitiativeEntity]), MediaModule],
   controllers: [InitiativesController],
   providers: [InitiativesService],
   exports: [InitiativesService],
