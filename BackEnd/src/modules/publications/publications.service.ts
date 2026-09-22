@@ -60,10 +60,10 @@ export class PublicationsService {
     const pub = this.repo.create({
       ...dto,
       authorUserId: user.id,
-      authorName: user.name,
-      authorRole: (user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) ? 'admin' : 'porteur',
+      authorName: dto.authorName || user.name,
+      authorRole: dto.authorRole || ((user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) ? 'admin' : 'porteur'),
       youtubeId,
-      date: new Date().toISOString(),
+      date: dto.date || new Date().toISOString(),
     });
     return this.repo.save(pub);
   }

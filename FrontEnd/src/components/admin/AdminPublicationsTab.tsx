@@ -81,36 +81,47 @@ export const AdminPublicationsTab: React.FC = () => {
     return matchesType && matchesCommune && matchesSearch;
   });
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const [createError, setCreateError] = useState<string>('');
+  const [isCreating, setIsCreating] = useState<boolean>(false);
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newSummary.trim()) return;
+    setCreateError('');
+    setIsCreating(true);
 
     const communeObj = communes.find(c => c.id === newCommuneId);
 
-    addPublication({
-      title: newTitle.trim(),
-      metaDescription: newSummary.trim(),
-      content: newContent.trim() || newSummary.trim(),
-      communeId: newCommuneId,
-      authorName: newType === 'commune_news' ? `Mairie de la ${communeObj?.name || 'Commune'}` : activeUser.name,
-      authorRole: 'admin',
-      type: newType,
-      format: newVideoUrl.trim() ? 'video' : 'carousel',
-      status: 'published',
-      date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
-      coverImage: newImageUrl.trim() || (newVideoUrl.trim() ? 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&q=80&w=600' : 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600'),
-      youtubeUrl: newVideoUrl.trim() || undefined,
-      carouselImages: newImageUrl.trim() ? [{ url: newImageUrl.trim(), caption: newTitle.trim() }] : undefined
-    });
+    try {
+      await addPublication({
+        title: newTitle.trim(),
+        metaDescription: newSummary.trim(),
+        content: newContent.trim() || newSummary.trim(),
+        communeId: newCommuneId,
+        authorName: newType === 'commune_news' ? `Mairie de la ${communeObj?.name || 'Commune'}` : activeUser.name,
+        authorRole: 'admin',
+        type: newType,
+        format: newVideoUrl.trim() ? 'video' : 'carousel',
+        status: 'published',
+        date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+        coverImage: newImageUrl.trim() || undefined,
+        youtubeUrl: newVideoUrl.trim() || undefined,
+        carouselImages: newImageUrl.trim() ? [{ url: newImageUrl.trim(), caption: newTitle.trim() }] : undefined
+      });
 
-    setSuccessBanner(`La publication "${newTitle}" a été créée et mise en ligne.`);
-    setIsCreateModalOpen(false);
-    setNewTitle('');
-    setNewSummary('');
-    setNewContent('');
-    setNewVideoUrl('');
-    setNewImageUrl('');
-    setTimeout(() => setSuccessBanner(null), 3500);
+      setSuccessBanner(`La publication "${newTitle}" a été créée et mise en ligne.`);
+      setIsCreateModalOpen(false);
+      setNewTitle('');
+      setNewSummary('');
+      setNewContent('');
+      setNewVideoUrl('');
+      setNewImageUrl('');
+      setTimeout(() => setSuccessBanner(null), 3500);
+    } catch (err: any) {
+      setCreateError(err?.message || 'Erreur lors de la création. Vérifiez votre connexion.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleStartEdit = (pub: Publication) => {
@@ -124,33 +135,49 @@ export const AdminPublicationsTab: React.FC = () => {
     setEditVideoUrl(pub.youtubeUrl || '');
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const [editError, setEditError] = useState<string>('');
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingPublication) return;
+    setEditError('');
+    setIsEditing(true);
 
-    updatePublication(editingPublication.id, {
-      title: editTitle.trim(),
-      metaDescription: editSummary.trim(),
-      content: editContent.trim(),
-      communeId: editCommuneId,
-      type: editType,
-      format: editVideoUrl.trim() ? 'video' : 'carousel',
-      coverImage: editImageUrl.trim() || editingPublication.coverImage,
-      youtubeUrl: editVideoUrl.trim() || undefined,
-      carouselImages: editImageUrl.trim() ? [{ url: editImageUrl.trim(), caption: editTitle.trim() }] : editingPublication.carouselImages
-    });
+    try {
+      await updatePublication(editingPublication.id, {
+        title: editTitle.trim(),
+        metaDescription: editSummary.trim(),
+        content: editContent.trim(),
+        communeId: editCommuneId,
+        type: editType,
+        format: editVideoUrl.trim() ? 'video' : 'carousel',
+        coverImage: editImageUrl.trim() || editingPublication.coverImage,
+        youtubeUrl: editVideoUrl.trim() || undefined,
+        carouselImages: editImageUrl.trim() ? [{ url: editImageUrl.trim(), caption: editTitle.trim() }] : editingPublication.carouselImages
+      });
 
-    setSuccessBanner(`La publication "${editTitle}" a été modifiée avec succès.`);
-    setEditingPublication(null);
-    setTimeout(() => setSuccessBanner(null), 3500);
+      setSuccessBanner(`La publication "${editTitle}" a été modifiée avec succès.`);
+      setEditingPublication(null);
+      setTimeout(() => setSuccessBanner(null), 3500);
+    } catch (err: any) {
+      setEditError(err?.message || 'Erreur lors de la modification.');
+    } finally {
+      setIsEditing(false);
+    }
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!publicationToDelete) return;
-    deletePublication(publicationToDelete.id);
-    setSuccessBanner(`La publication a été supprimée.`);
-    setPublicationToDelete(null);
-    setTimeout(() => setSuccessBanner(null), 3500);
+    try {
+      await deletePublication(publicationToDelete.id);
+      setSuccessBanner('La publication a été supprimée.');
+      setPublicationToDelete(null);
+      setTimeout(() => setSuccessBanner(null), 3500);
+    } catch (err: any) {
+      setSuccessBanner('');
+      console.error('Erreur suppression:', err);
+    }
   };
 
   // Get comments associated with the publication being moderated

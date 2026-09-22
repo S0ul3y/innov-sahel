@@ -20,6 +20,7 @@ import {
   ExternalLink,
   ChevronRight,
   TrendingUp,
+  AlertTriangle,
   Image as ImageIcon
 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -36,7 +37,8 @@ export const InitiativeDetailView: React.FC = () => {
     setSelectedCommuneId, 
     setActiveTab, 
     comments, 
-    addComment, 
+    addComment,
+    loadCommentsForInitiative,
     currentUserRole,
     setActiveModal 
   } = useApp();
@@ -49,11 +51,20 @@ export const InitiativeDetailView: React.FC = () => {
   const [commentName, setCommentName] = useState('');
   const [commentMessage, setCommentMessage] = useState('');
   const [commentSuccess, setCommentSuccess] = useState(false);
+  const [commentError, setCommentError] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [selectedInitiative]);
+
+  // Charger les commentaires depuis la DB à l'ouverture de l'initiative
+  useEffect(() => {
+    const initId = selectedInitiative?.id || id;
+    if (initId) {
+      loadCommentsForInitiative(initId);
+    }
+  }, [selectedInitiative?.id, id, loadCommentsForInitiative]);
 
   if (!selectedInitiative) {
     return (
@@ -74,21 +85,26 @@ export const InitiativeDetailView: React.FC = () => {
   const commune = communes.find(c => c.id === selectedInitiative.communeId);
   const initiativeComments = comments.filter(c => c.initiativeId === selectedInitiative.id);
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentMessage.trim()) return;
+    setCommentError('');
 
-    addComment({
-      initiativeId: selectedInitiative.id,
-      authorName: commentName.trim() || 'Citoyen supporter',
-      authorRole: currentUserRole === 'admin' ? 'admin' : currentUserRole === 'porteur' ? 'porteur' : 'citoyen',
-      message: commentMessage.trim()
-    });
+    try {
+      await addComment({
+        initiativeId: selectedInitiative.id,
+        authorName: commentName.trim() || 'Citoyen supporter',
+        authorRole: currentUserRole === 'admin' ? 'admin' : currentUserRole === 'porteur' ? 'porteur' : 'citoyen',
+        message: commentMessage.trim()
+      });
 
-    setCommentMessage('');
-    setCommentName('');
-    setCommentSuccess(true);
-    setTimeout(() => setCommentSuccess(false), 3000);
+      setCommentMessage('');
+      setCommentName('');
+      setCommentSuccess(true);
+      setTimeout(() => setCommentSuccess(false), 3000);
+    } catch (err: any) {
+      setCommentError(err?.message || 'Erreur lors de l\'envoi. Vérifiez votre connexion.');
+    }
   };
 
   const handleShareWhatsApp = () => {
@@ -471,6 +487,12 @@ export const InitiativeDetailView: React.FC = () => {
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-600" />
               <span>Merci pour votre soutien chaleureux ! Il a été publié avec succès.</span>
+            </div>
+          )}
+          {commentError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+              <span>{commentError}</span>
             </div>
           )}
         </form>

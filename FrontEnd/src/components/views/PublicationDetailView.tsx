@@ -35,6 +35,7 @@ export const PublicationDetailView: React.FC = () => {
     setActiveTab, 
     comments, 
     addComment,
+    loadCommentsForPublication,
     currentUserRole 
   } = useApp();
 
@@ -51,6 +52,14 @@ export const PublicationDetailView: React.FC = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [selectedPublication]);
+
+  // Charger les commentaires depuis la DB à l'ouverture de la publication
+  useEffect(() => {
+    const pubId = selectedPublication?.id || id;
+    if (pubId) {
+      loadCommentsForPublication(pubId);
+    }
+  }, [selectedPublication?.id, id, loadCommentsForPublication]);
 
   if (!selectedPublication) {
     return (
@@ -72,21 +81,28 @@ export const PublicationDetailView: React.FC = () => {
   const commune = communes.find(c => c.id === selectedPublication.communeId);
   const pubComments = comments.filter(c => c.publicationId === selectedPublication.id);
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const [commentError, setCommentError] = useState('');
+
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentMessage.trim()) return;
+    setCommentError('');
 
-    addComment({
-      publicationId: selectedPublication.id,
-      authorName: commentName.trim() || 'Citoyen engagé',
-      authorRole: currentUserRole === 'admin' ? 'admin' : currentUserRole === 'porteur' ? 'porteur' : 'citoyen',
-      message: commentMessage.trim()
-    });
+    try {
+      await addComment({
+        publicationId: selectedPublication.id,
+        authorName: commentName.trim() || 'Citoyen engagé',
+        authorRole: currentUserRole === 'admin' ? 'admin' : currentUserRole === 'porteur' ? 'porteur' : 'citoyen',
+        message: commentMessage.trim()
+      });
 
-    setCommentMessage('');
-    setCommentName('');
-    setCommentSuccess(true);
-    setTimeout(() => setCommentSuccess(false), 3000);
+      setCommentMessage('');
+      setCommentName('');
+      setCommentSuccess(true);
+      setTimeout(() => setCommentSuccess(false), 3000);
+    } catch (err: any) {
+      setCommentError(err?.message || 'Erreur lors de l\'envoi du commentaire. Vérifiez votre connexion.');
+    }
   };
 
   const handleShareWhatsApp = () => {
@@ -407,6 +423,12 @@ export const PublicationDetailView: React.FC = () => {
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-600" />
               <span>Votre commentaire a été publié avec succès ! Merci de votre participation.</span>
+            </div>
+          )}
+          {commentError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+              <span>{commentError}</span>
             </div>
           )}
         </form>

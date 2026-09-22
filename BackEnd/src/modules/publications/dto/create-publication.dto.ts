@@ -47,6 +47,18 @@ export class CreatePublicationDto {
   @IsOptional() @IsString()
   youtubeId?: string;
 
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString()
+  authorName?: string;
+
+  @ApiProperty({ required: false, enum: ['admin', 'porteur'] })
+  @IsOptional() @IsEnum(['admin', 'porteur'])
+  authorRole?: 'admin' | 'porteur';
+
+  @ApiProperty({ required: false })
+  @IsOptional() @IsString()
+  date?: string;
+
   @ApiProperty({ enum: ['draft', 'published'], default: 'published' })
   @IsOptional() @IsEnum(['draft', 'published'])
   publicationStatus?: PublicationStatus;

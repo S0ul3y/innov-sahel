@@ -39,19 +39,17 @@ export const PublishModal: React.FC = () => {
   // Step 1: Format Choice
   const [format, setFormat] = useState<PublicationFormat>('carousel');
   const [isPreview, setIsPreview] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Form fields
   const [title, setTitle] = useState<string>('');
   const [metaDescription, setMetaDescription] = useState<string>('');
   const [communeId, setCommuneId] = useState<string>(selectedCommuneId);
-  const [coverImage, setCoverImage] = useState<string>('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=900&auto=format&fit=crop&q=80');
+  const [coverImage, setCoverImage] = useState<string>(''); // Vide — l'admin charge sa propre image
   const [content, setContent] = useState<string>('');
   
-  // Carousel images
-  const [carouselImages, setCarouselImages] = useState<Array<{ url: string; caption?: string }>>([
-    { url: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=800&auto=format&fit=crop&q=80', caption: 'Mobilisation des jeunes dans le quartier' },
-    { url: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=800&auto=format&fit=crop&q=80', caption: 'Atelier de tri et fabrication' }
-  ]);
+  // Carousel images — vide par défaut, l'admin ajoute ses propres images réelles
+  const [carouselImages, setCarouselImages] = useState<Array<{ url: string; caption?: string }>>([]);
   const [newImageUrl, setNewImageUrl] = useState<string>('');
   const [newImageCaption, setNewImageCaption] = useState<string>('');
 
@@ -76,8 +74,8 @@ export const PublishModal: React.FC = () => {
     const match = url.match(regExp);
     if (match && match[2].length === 11) {
       setYoutubeId(match[2]);
-      // If user hasn't chosen cover image, use YouTube thumbnail automatically (Section 7.1.5)
-      if (!coverImage || coverImage.includes('unsplash')) {
+      // Si pas d'image de couverture, utiliser la miniature YouTube automatiquement
+      if (!coverImage || coverImage === '') {
         setCoverImage(`https://img.youtube.com/vi/${match[2]}/hqdefault.jpg`);
       }
     } else {
@@ -109,7 +107,7 @@ export const PublishModal: React.FC = () => {
     else if (tag === 'link') setContent(prev => `${prev} [Lien web](https://impactsahel.org) `);
   };
 
-  const handleSave = (status: 'draft' | 'published') => {
+  const handleSave = async (status: 'draft' | 'published') => {
     if (!title.trim()) {
       setFormError('Le titre principal est obligatoire.');
       return;
@@ -127,27 +125,35 @@ export const PublishModal: React.FC = () => {
       return;
     }
 
+    setFormError('');
+    setIsSubmitting(true);
+
     const now = new Date();
     const formattedDate = `${now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
 
-    addPublication({
-      type: currentUserRole === 'admin' ? 'commune_news' : 'initiative_update',
-      format,
-      authorName: activeUser.name || 'Porteur Lab Citoyen',
-      authorRole: currentUserRole === 'admin' ? 'admin' : 'porteur',
-      communeId,
-      title: title.trim(),
-      metaDescription: metaDescription.trim(),
-      coverImage,
-      content: content.trim(),
-      carouselImages: format === 'carousel' ? carouselImages : undefined,
-      youtubeUrl: format === 'video' ? youtubeUrl : undefined,
-      youtubeId: format === 'video' ? youtubeId : undefined,
-      status,
-      date: formattedDate
-    });
-
-    setActiveModal(null);
+    try {
+      await addPublication({
+        type: currentUserRole === 'admin' ? 'commune_news' : 'initiative_update',
+        format,
+        authorName: activeUser.name || 'Porteur Lab Citoyen',
+        authorRole: currentUserRole === 'admin' ? 'admin' : 'porteur',
+        communeId,
+        title: title.trim(),
+        metaDescription: metaDescription.trim(),
+        coverImage,
+        content: content.trim(),
+        carouselImages: format === 'carousel' ? carouselImages : undefined,
+        youtubeUrl: format === 'video' ? youtubeUrl : undefined,
+        youtubeId: format === 'video' ? youtubeId : undefined,
+        status,
+        date: formattedDate
+      });
+      setActiveModal(null);
+    } catch (err: any) {
+      setFormError(err?.message || 'Erreur lors de la publication. Vérifiez votre connexion au serveur.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -495,26 +501,38 @@ export const PublishModal: React.FC = () => {
             <button
               type="button"
               onClick={() => handleSave('draft')}
-              className="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Enregistrer comme brouillon
+              {isSubmitting ? 'Enregistrement...' : 'Enregistrer comme brouillon'}
             </button>
 
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+                disabled={isSubmitting}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Annuler
               </button>
               <button
                 type="button"
                 onClick={() => handleSave('published')}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FADB58] text-[#08233C] font-extrabold text-sm hover:bg-[#ebd048] transition-all shadow-md cursor-pointer"
+                disabled={isSubmitting}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FADB58] text-[#08233C] font-extrabold text-sm hover:bg-[#ebd048] transition-all shadow-md cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Check className="w-4 h-4" />
-                <span>Publier maintenant</span>
+                {isSubmitting ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-[#08233C]/30 border-t-[#08233C] rounded-full animate-spin" />
+                    <span>Publication en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Publier maintenant</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

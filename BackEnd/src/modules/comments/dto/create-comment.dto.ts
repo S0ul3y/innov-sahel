@@ -15,6 +15,10 @@ export class CreateCommentDto {
   @MinLength(1) @MaxLength(50)
   authorName: string;
 
+  @ApiProperty({ required: false, enum: ['citoyen', 'porteur', 'admin'], default: 'citoyen' })
+  @IsOptional() @IsString()
+  authorRole?: 'citoyen' | 'porteur' | 'admin';
+
   @ApiProperty({ example: 'Très belle initiative, bravo !' })
   @IsString()
   @MinLength(2, { message: 'Le commentaire est trop court.' })
