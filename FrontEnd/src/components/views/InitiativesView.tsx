@@ -10,6 +10,7 @@ import {
   ChevronRight,
   PlusCircle
 } from 'lucide-react';
+import { getMediaUrl, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const InitiativesView: React.FC = () => {
   const { initiatives, communes, openInitiativeById, currentUserRole, setActiveModal } = useApp();
@@ -168,8 +169,11 @@ export const InitiativesView: React.FC = () => {
                   {/* Cover */}
                   <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
                     <img
-                      src={init.coverImage}
+                      src={getMediaUrl(init.coverImage, DEFAULT_PUBLICATION_COVERS.initiative_update)}
                       alt={init.title}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS.initiative_update;
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <span className="absolute top-3 left-3 bg-[#FADB58] text-[#08233C] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">

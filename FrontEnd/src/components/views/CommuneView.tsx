@@ -21,6 +21,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getPublicationCover, getMediaUrl, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const CommuneView: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -415,8 +416,11 @@ export const CommuneView: React.FC = () => {
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col sm:flex-row group"
               >
                 <img
-                  src={news.coverImage}
+                  src={getPublicationCover(news)}
                   alt={news.title}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[news.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
+                  }}
                   className="w-full sm:w-44 h-40 sm:h-auto object-cover group-hover:scale-105 transition-transform duration-300 flex-shrink-0"
                 />
                 <div className="p-4 flex-1 flex flex-col justify-between">
@@ -472,8 +476,11 @@ export const CommuneView: React.FC = () => {
               >
                 <div className="relative h-40 w-full overflow-hidden bg-slate-100">
                   <img
-                    src={init.coverImage}
+                    src={getMediaUrl(init.coverImage, DEFAULT_PUBLICATION_COVERS.initiative_update)}
                     alt={init.title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS.initiative_update;
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <span className="absolute top-3 left-3 bg-[#FADB58] text-[#08233C] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">

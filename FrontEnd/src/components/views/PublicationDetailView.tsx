@@ -21,6 +21,7 @@ import {
   User
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getPublicationSlides, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const PublicationDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -122,9 +123,7 @@ export const PublicationDetailView: React.FC = () => {
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  const slides = selectedPublication.carouselImages && selectedPublication.carouselImages.length > 0
-    ? selectedPublication.carouselImages
-    : [{ url: selectedPublication.coverImage, caption: selectedPublication.title }];
+  const slides = getPublicationSlides(selectedPublication);
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 pb-16 animate-in fade-in duration-200">
@@ -242,6 +241,9 @@ export const PublicationDetailView: React.FC = () => {
                 <img
                   src={slides[activeSlide]?.url}
                   alt={slides[activeSlide]?.caption || selectedPublication.title}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[selectedPublication.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
+                  }}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

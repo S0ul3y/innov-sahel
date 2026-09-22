@@ -17,6 +17,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getPublicationCover, getMediaUrl, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const HomeView: React.FC = () => {
   const { 
@@ -318,8 +319,11 @@ export const HomeView: React.FC = () => {
               >
                 <div className="relative h-44 w-full bg-slate-100 overflow-hidden">
                   <img
-                    src={init.coverImage}
+                    src={getMediaUrl(init.coverImage, DEFAULT_PUBLICATION_COVERS.initiative_update)}
                     alt={init.title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS.initiative_update;
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <span className="absolute top-3 left-3 bg-[#FADB58] text-[#08233C] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
@@ -388,8 +392,11 @@ export const HomeView: React.FC = () => {
               >
                 <div className="relative h-36 w-full bg-slate-100 overflow-hidden">
                   <img
-                    src={news.coverImage}
+                    src={getPublicationCover(news)}
                     alt={news.title}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[news.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <span className="absolute top-2.5 left-2.5 bg-[#08233C]/85 text-white backdrop-blur-xs text-[10px] font-bold px-2 py-0.5 rounded">

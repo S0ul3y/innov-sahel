@@ -27,6 +27,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { LoginView } from './LoginView';
+import { getPublicationCover, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const DashboardView: React.FC = () => {
   const { 
@@ -269,7 +270,14 @@ export const DashboardView: React.FC = () => {
                 className="p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100/80 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
               >
                 <div className="flex items-center gap-3">
-                  <img src={pub.coverImage} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                  <img
+                    src={getPublicationCover(pub)}
+                    alt=""
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[pub.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
+                    }}
+                    className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
+                  />
                   <div>
                     <span className="text-[11px] text-slate-400 font-semibold">{pub.date}</span>
                     <h4 className="font-bold text-slate-900 text-sm line-clamp-1">{pub.title}</h4>

@@ -12,6 +12,7 @@ import {
   ChevronRight,
   PlusCircle
 } from 'lucide-react';
+import { getPublicationCover, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const NewsView: React.FC = () => {
   const { 
@@ -124,8 +125,11 @@ export const NewsView: React.FC = () => {
                 >
                   <div className="relative h-52 w-full bg-slate-100 overflow-hidden">
                     <img
-                      src={pub.coverImage}
+                      src={getPublicationCover(pub)}
                       alt={pub.title}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[pub.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-3 inset-x-3 flex items-center justify-between">

@@ -24,6 +24,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getMediaUrl, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const InitiativeDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -170,8 +171,11 @@ export const InitiativeDetailView: React.FC = () => {
         {/* Full-width Cover banner */}
         <div className="relative h-64 sm:h-96 md:h-[420px] w-full bg-slate-900">
           <img
-            src={selectedInitiative.coverImage}
+            src={getMediaUrl(selectedInitiative.coverImage, DEFAULT_PUBLICATION_COVERS.initiative_update)}
             alt={selectedInitiative.title}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS.initiative_update;
+            }}
             className="w-full h-full object-cover opacity-90"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#08233C] via-[#08233C]/40 to-transparent" />

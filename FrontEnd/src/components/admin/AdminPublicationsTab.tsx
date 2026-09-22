@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { ImageUpload } from '../shared/ImageUpload';
 import { YoutubeEmbed } from '../shared/YoutubeEmbed';
+import { getPublicationCover, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const AdminPublicationsTab: React.FC = () => {
   const { 
@@ -91,6 +92,17 @@ export const AdminPublicationsTab: React.FC = () => {
     setIsCreating(true);
 
     const communeObj = communes.find(c => c.id === newCommuneId);
+    let finalCover = newImageUrl.trim() || undefined;
+    let extractedYtId: string | undefined = undefined;
+    if (newVideoUrl.trim()) {
+      const match = newVideoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+      if (match && match[1]) {
+        extractedYtId = match[1];
+        if (!finalCover) {
+          finalCover = `https://img.youtube.com/vi/${extractedYtId}/hqdefault.jpg`;
+        }
+      }
+    }
 
     try {
       await addPublication({
@@ -104,8 +116,9 @@ export const AdminPublicationsTab: React.FC = () => {
         format: newVideoUrl.trim() ? 'video' : 'carousel',
         status: 'published',
         date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
-        coverImage: newImageUrl.trim() || undefined,
+        coverImage: finalCover,
         youtubeUrl: newVideoUrl.trim() || undefined,
+        youtubeId: extractedYtId,
         carouselImages: newImageUrl.trim() ? [{ url: newImageUrl.trim(), caption: newTitle.trim() }] : undefined
       });
 
@@ -351,8 +364,11 @@ export const AdminPublicationsTab: React.FC = () => {
                   {/* Media cover preview */}
                   <div className="relative h-44 w-full bg-slate-100 overflow-hidden">
                     <img
-                      src={pub.coverImage || 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&q=80&w=600'}
+                      src={getPublicationCover(pub)}
                       alt={pub.title}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[pub.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
+                      }}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

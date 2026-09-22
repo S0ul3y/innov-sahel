@@ -131,6 +131,15 @@ export const PublishModal: React.FC = () => {
     const now = new Date();
     const formattedDate = `${now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
 
+    let finalCover = coverImage.trim();
+    if (!finalCover && format === 'video' && youtubeId) {
+      finalCover = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+    }
+    const validCarousel = carouselImages.filter(img => img && typeof img.url === 'string' && img.url.trim() !== '');
+    if (!finalCover && format === 'carousel' && validCarousel.length > 0) {
+      finalCover = validCarousel[0].url;
+    }
+
     try {
       await addPublication({
         type: currentUserRole === 'admin' ? 'commune_news' : 'initiative_update',
@@ -140,9 +149,9 @@ export const PublishModal: React.FC = () => {
         communeId,
         title: title.trim(),
         metaDescription: metaDescription.trim(),
-        coverImage,
+        coverImage: finalCover || undefined,
         content: content.trim(),
-        carouselImages: format === 'carousel' ? carouselImages : undefined,
+        carouselImages: format === 'carousel' && validCarousel.length > 0 ? validCarousel : undefined,
         youtubeUrl: format === 'video' ? youtubeUrl : undefined,
         youtubeId: format === 'video' ? youtubeId : undefined,
         status,

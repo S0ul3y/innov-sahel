@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { YoutubeEmbed } from '../shared/YoutubeEmbed';
 import { UploadsController } from '../../controllers/uploadsController';
+import { getPublicationSlides, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const PublicationDetailModal: React.FC = () => {
   const { 
@@ -70,14 +71,7 @@ export const PublicationDetailModal: React.FC = () => {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
   };
 
-  const slides = selectedPublication.carouselImages && selectedPublication.carouselImages.length > 0
-    ? selectedPublication.carouselImages.map(img => ({
-        ...img,
-        url: UploadsController.getImageUrl(img.url)
-      }))
-    : selectedPublication.coverImage
-    ? [{ url: UploadsController.getImageUrl(selectedPublication.coverImage), caption: selectedPublication.title }]
-    : [];
+  const slides = getPublicationSlides(selectedPublication);
 
   const hasVideo = !!(selectedPublication.youtubeUrl || selectedPublication.youtubeId);
 
@@ -133,6 +127,9 @@ export const PublicationDetailModal: React.FC = () => {
                 <img
                   src={slides[activeSlide]?.url}
                   alt={slides[activeSlide]?.caption || ''}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[selectedPublication.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
+                  }}
                   className="w-full h-full object-cover"
                 />
                 {slides[activeSlide]?.caption && (
