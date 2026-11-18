@@ -195,23 +195,23 @@ export const AdminMonInitiativeTab: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header section */}
-      <div className="bg-gradient-to-r from-[#062326] via-[#0B3B3F] to-[#062326] rounded-2xl p-6 sm:p-8 text-white shadow-lg border border-[#0E3A3E] flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-[#08233C] via-[#0B3B60] to-[#08233C] rounded-2xl p-6 sm:p-8 text-white shadow-lg border border-[#0B3B60]/60 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold mb-3 border border-emerald-500/30">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#38B6FF]/20 text-[#38B6FF] text-xs font-bold mb-3 border border-[#38B6FF]/30">
             <Sparkles className="w-3.5 h-3.5" />
             ESPACE PORTEUR DE PROJET
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
             Mon Initiative & Dialogue Citoyen
           </h1>
-          <p className="text-teal-200/80 text-sm sm:text-base mt-2 max-w-2xl">
+          <p className="text-slate-300 text-sm sm:text-base mt-2 max-w-2xl">
             Gérez directement la fiche de votre projet, enrichissez-la d'images réelles et d'une vidéo YouTube, et échangez en toute proximité avec les citoyens qui commentent vos actions.
           </p>
         </div>
 
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#062326] font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer flex-shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#FADB58] hover:bg-[#E8C31A] text-[#08233C] font-black text-sm shadow-md hover:shadow-lg transition-all cursor-pointer flex-shrink-0"
         >
           <Plus className="w-5 h-5" />
           Ajouter une initiative
@@ -220,8 +220,8 @@ export const AdminMonInitiativeTab: React.FC = () => {
 
       {/* Notifications */}
       {successMsg && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+        <div className="p-4 rounded-xl bg-[#EFF8FF] border border-[#38B6FF]/40 text-[#08233C] text-sm flex items-center gap-3">
+          <CheckCircle className="w-5 h-5 text-[#38B6FF] flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
@@ -236,13 +236,13 @@ export const AdminMonInitiativeTab: React.FC = () => {
       {/* Loading state */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 text-slate-500 gap-3">
-          <Loader className="w-8 h-8 animate-spin text-emerald-600" />
+          <Loader className="w-8 h-8 animate-spin text-[#38B6FF]" />
           <p className="text-sm font-medium">Chargement de votre initiative...</p>
         </div>
       ) : initiatives.length === 0 ? (
         /* Empty state */
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#EFF8FF] text-[#38B6FF] flex items-center justify-center mx-auto mb-4">
             <Lightbulb className="w-8 h-8" />
           </div>
           <h3 className="text-lg font-bold text-slate-800 mb-2">Aucune initiative enregistrée</h3>
@@ -251,7 +251,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
           </p>
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#38B6FF] hover:bg-[#0B3B60] text-white font-bold text-sm shadow-md transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Créer mon initiative
@@ -276,7 +276,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                     onClick={() => setActiveInitiativeId(init.id)}
                     className={`p-4 rounded-xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-emerald-50/70 border-emerald-400 shadow-sm ring-2 ring-emerald-500/20'
+                        ? 'bg-[#EFF8FF] border-[#38B6FF] shadow-sm ring-2 ring-[#38B6FF]/20'
                         : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                     }`}
                   >
@@ -375,8 +375,8 @@ export const AdminMonInitiativeTab: React.FC = () => {
                     <h5 className="font-bold text-amber-900 text-xs uppercase mb-1">Problème résolu</h5>
                     <p className="text-slate-700 text-xs leading-relaxed">{activeInit.problem}</p>
                   </div>
-                  <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200">
-                    <h5 className="font-bold text-emerald-900 text-xs uppercase mb-1">Solution mise en œuvre</h5>
+                  <div className="p-4 rounded-xl bg-[#EFF8FF] border border-[#38B6FF]/30">
+                    <h5 className="font-bold text-[#0B3B60] text-xs uppercase mb-1">Solution mise en œuvre</h5>
                     <p className="text-slate-700 text-xs leading-relaxed">{activeInit.solution}</p>
                   </div>
                 </div>
@@ -386,11 +386,11 @@ export const AdminMonInitiativeTab: React.FC = () => {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-teal-600" />
+                    <MessageSquare className="w-5 h-5 text-[#38B6FF]" />
                     <h3 className="font-bold text-slate-900 text-base">
                       Questions & Commentaires des Citoyens
                     </h3>
-                    <span className="text-xs bg-teal-50 text-teal-700 font-bold px-2 py-0.5 rounded-full border border-teal-200">
+                    <span className="text-xs bg-[#EFF8FF] text-[#0B3B60] font-bold px-2 py-0.5 rounded-full border border-[#38B6FF]/30">
                       {activeComments.length}
                     </span>
                   </div>
@@ -398,7 +398,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
 
                 {loadingComments ? (
                   <div className="py-8 flex justify-center text-slate-400">
-                    <Loader className="w-6 h-6 animate-spin text-emerald-600" />
+                    <Loader className="w-6 h-6 animate-spin text-[#38B6FF]" />
                   </div>
                 ) : activeComments.length === 0 ? (
                   <p className="text-slate-500 text-sm text-center py-6">
@@ -422,8 +422,8 @@ export const AdminMonInitiativeTab: React.FC = () => {
 
                         {/* Existing Reply if any */}
                         {comment.replyText ? (
-                          <div className="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 mt-2">
-                            <p className="text-[11px] font-bold text-emerald-900 mb-0.5">
+                          <div className="p-3 rounded-lg bg-[#EFF8FF] border border-[#38B6FF]/40 mt-2">
+                            <p className="text-[11px] font-bold text-[#0B3B60] mb-0.5">
                               Votre réponse :
                             </p>
                             <p className="text-xs text-slate-800 leading-relaxed">
@@ -438,12 +438,12 @@ export const AdminMonInitiativeTab: React.FC = () => {
                               placeholder="Répondre publiquement à ce citoyen..."
                               value={replyTextMap[comment.id] || ''}
                               onChange={e => setReplyTextMap({ ...replyTextMap, [comment.id]: e.target.value })}
-                              className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              className="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50"
                             />
                             <button
                               onClick={() => handleSendReply(comment.id)}
                               disabled={submittingReplyId === comment.id || !replyTextMap[comment.id]?.trim()}
-                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer flex-shrink-0"
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#38B6FF] hover:bg-[#0B3B60] disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer flex-shrink-0"
                             >
                               {submittingReplyId === comment.id ? (
                                 <Loader className="w-3.5 h-3.5 animate-spin" />
@@ -491,7 +491,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Ex : Récupération des eaux et maraîchage féminin"
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 text-sm"
                 />
               </div>
 
@@ -503,7 +503,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   <select
                     value={formData.communeId}
                     onChange={e => setFormData({ ...formData, communeId: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 text-sm bg-white"
                   >
                     {communes.map(c => (
                       <option key={c.id} value={c.id}>
@@ -520,7 +520,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   <select
                     value={formData.status}
                     onChange={e => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 text-sm bg-white"
                   >
                     <option value="demarre">Démarré (Lancement)</option>
                     <option value="en_cours">En cours (Opérationnel)</option>
@@ -537,7 +537,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   <select
                     value={formData.domain}
                     onChange={e => setFormData({ ...formData, domain: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm bg-white"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 text-sm bg-white"
                   >
                     <option value="Agroécologie & Maraîchage">Agroécologie & Maraîchage</option>
                     <option value="Énergie solaire & Électrification">Énergie solaire & Électrification</option>
@@ -557,7 +557,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                     value={formData.beneficiaries}
                     onChange={e => setFormData({ ...formData, beneficiaries: e.target.value })}
                     placeholder="Ex: 120 femmes maraîchères"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 text-sm"
                   />
                 </div>
               </div>
@@ -572,7 +572,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   value={formData.problem}
                   onChange={e => setFormData({ ...formData, problem: e.target.value })}
                   placeholder="Expliquez la difficulté locale à laquelle votre projet répond..."
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 text-sm"
                 />
               </div>
 
@@ -586,7 +586,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   value={formData.solution}
                   onChange={e => setFormData({ ...formData, solution: e.target.value })}
                   placeholder="Décrivez précisément votre solution technique ou organisationnelle..."
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 text-sm"
                 />
               </div>
 
@@ -612,7 +612,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   value={formData.videoUrl || ''}
                   onChange={e => setFormData({ ...formData, videoUrl: e.target.value })}
                   placeholder="https://www.youtube.com/watch?v=..."
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 text-sm"
                 />
                 {formData.videoUrl && (
                   <div className="mt-2">
@@ -632,7 +632,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-colors cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#38B6FF] hover:bg-[#0B3B60] text-white font-bold text-xs shadow-md transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {submitting && <Loader className="w-4 h-4 animate-spin" />}
                   {editingInitiative ? 'Enregistrer les modifications' : 'Créer l’initiative'}

@@ -1,53 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Calendar, 
-  Eye, 
-  Share2, 
-  MessageSquare, 
-  Send, 
-  CheckCircle2, 
-  Check, 
-  Clock, 
-  Users, 
-  Award, 
-  Sparkles, 
-  HandHeart, 
-  HelpCircle,
-  ExternalLink,
-  ChevronRight,
+import {
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  Eye,
+  Share2,
+  MessageSquare,
+  Send,
+  CheckCircle2,
+  Check,
+  Clock,
+  Award,
+  Sparkles,
   TrendingUp,
   AlertTriangle,
-  Image as ImageIcon
+  Lightbulb,
+  Target,
+  Image as ImageIcon,
+  Loader2
 } from 'lucide-react';
-import { motion } from 'motion/react';
 import { getMediaUrl, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
+import { InitiativesController } from '../../controllers/initiativesController';
+import { Initiative } from '../../models/initiative.model';
 
 export const InitiativeDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { 
-    selectedInitiative: contextInitiative, 
-    setSelectedInitiative, 
+  const {
+    selectedInitiative: contextInitiative,
+    setSelectedInitiative,
     initiatives,
-    communes, 
-    setSelectedCommuneId, 
-    setActiveTab, 
-    comments, 
+    communes,
+    setSelectedCommuneId,
+    setActiveTab,
+    comments,
     addComment,
     loadCommentsForInitiative,
     currentUserRole,
-    setActiveModal 
+    setActiveModal
   } = useApp();
 
-  const selectedInitiative = (contextInitiative && (!id || contextInitiative.id === id))
-    ? contextInitiative
-    : initiatives.find(i => i.id === id) || contextInitiative;
-
+  const [fetchedInitiative, setFetchedInitiative] = useState<Initiative | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
   const [commentName, setCommentName] = useState('');
   const [commentMessage, setCommentMessage] = useState('');
@@ -55,9 +52,42 @@ export const InitiativeDetailView: React.FC = () => {
   const [commentError, setCommentError] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Détermination de l'initiative à afficher
+  const selectedInitiative: Initiative | null =
+    (contextInitiative && (!id || contextInitiative.id === id))
+      ? contextInitiative
+      : (id ? initiatives.find(i => i.id === id) : null) || fetchedInitiative || null;
+
+  // Récupération de secours depuis l'API si l'initiative n'est pas encore chargée dans le contexte
+  useEffect(() => {
+    if (!id) return;
+    const existsInList = initiatives.find(i => i.id === id);
+    if (!existsInList && !contextInitiative) {
+      let isMounted = true;
+      setIsLoading(true);
+      InitiativesController.getById(id)
+        .then((data) => {
+          if (isMounted && data) {
+            setFetchedInitiative(data);
+            setSelectedInitiative(data);
+          }
+        })
+        .catch((err) => {
+          console.warn('Impossible de charger l\'initiative par ID:', err);
+        })
+        .finally(() => {
+          if (isMounted) setIsLoading(false);
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [id, initiatives, contextInitiative, setSelectedInitiative]);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [selectedInitiative]);
+  }, [selectedInitiative?.id]);
 
   // Charger les commentaires depuis la DB à l'ouverture de l'initiative
   useEffect(() => {
@@ -66,6 +96,25 @@ export const InitiativeDetailView: React.FC = () => {
       loadCommentsForInitiative(initId);
     }
   }, [selectedInitiative?.id, id, loadCommentsForInitiative]);
+
+  const handleBack = () => {
+    setSelectedInitiative(null);
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/initiatives');
+    }
+  };
+
+  if (isLoading && !selectedInitiative) {
+    return (
+      <div className="w-full max-w-2xl mx-auto text-center py-24 bg-white rounded-3xl border border-slate-200 p-8 shadow-xs my-8 space-y-4">
+        <Loader2 className="w-10 h-10 text-[#38B6FF] animate-spin mx-auto" />
+        <h2 className="text-lg font-bold text-slate-800">Chargement de l'initiative...</h2>
+        <p className="text-xs text-slate-500">Veuillez patienter pendant la récupération des détails.</p>
+      </div>
+    );
+  }
 
   if (!selectedInitiative) {
     return (
@@ -84,7 +133,29 @@ export const InitiativeDetailView: React.FC = () => {
   }
 
   const commune = communes.find(c => c.id === selectedInitiative.communeId);
-  const initiativeComments = comments.filter(c => c.initiativeId === selectedInitiative.id);
+  const initiativeComments = Array.isArray(comments)
+    ? comments.filter(c => c && c.initiativeId === selectedInitiative.id)
+    : [];
+
+  // Normalisation des photos de la galerie (objets { url, caption } ou strings)
+  const rawGallery = selectedInitiative.gallery || (selectedInitiative as any).galleryImages || [];
+  const galleryItems: Array<{ url: string; caption?: string }> = Array.isArray(rawGallery)
+    ? rawGallery
+        .map((item: any) => {
+          if (!item) return null;
+          if (typeof item === 'string') return { url: getMediaUrl(item), caption: '' };
+          if (typeof item === 'object' && item.url) return { url: getMediaUrl(item.url), caption: item.caption || '' };
+          return null;
+        })
+        .filter((item): item is { url: string; caption?: string } => item !== null)
+    : [];
+
+  // Sécurisation des objectifs et résultats optionnels
+  const rawObjectives = (selectedInitiative as any).objectives;
+  const objectivesList: string[] = Array.isArray(rawObjectives) ? rawObjectives.filter(Boolean) : [];
+
+  const rawResults = (selectedInitiative as any).results;
+  const resultsList: string[] = Array.isArray(rawResults) ? rawResults.filter(Boolean) : [];
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,14 +202,11 @@ export const InitiativeDetailView: React.FC = () => {
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <button
           id="btn-back-to-initiatives"
-          onClick={() => {
-            setSelectedInitiative(null);
-            navigate('/initiatives');
-          }}
+          onClick={handleBack}
           className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#08233C] font-bold text-xs sm:text-sm transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Retour aux initiatives</span>
+          <span>Retour</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -234,7 +302,7 @@ export const InitiativeDetailView: React.FC = () => {
                 />
               ) : (
                 <div className="w-16 h-16 rounded-2xl bg-[#08233C] text-[#FADB58] flex items-center justify-center font-bold text-2xl flex-shrink-0">
-                  {selectedInitiative.ownerName.charAt(0)}
+                  {selectedInitiative.ownerName ? selectedInitiative.ownerName.charAt(0) : 'P'}
                 </div>
               )}
               <div>
@@ -255,7 +323,7 @@ export const InitiativeDetailView: React.FC = () => {
                     Lancé en {selectedInitiative.startDate}
                   </span>
                   <span>•</span>
-                  <span>{selectedInitiative.viewsCount} consultations citoyennes</span>
+                  <span>{selectedInitiative.viewsCount || 0} consultations citoyennes</span>
                 </div>
               </div>
             </div>
@@ -272,69 +340,104 @@ export const InitiativeDetailView: React.FC = () => {
             </div>
           </div>
 
-          {/* Description & Story */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-extrabold text-[#08233C] flex items-center gap-2">
-              <Award className="w-5 h-5 text-[#38B6FF]" />
-              Présentation détaillée du projet
-            </h2>
-            <p className="text-slate-700 text-base leading-relaxed">
-              {selectedInitiative.description}
-            </p>
-          </div>
-
-          {/* Objectives & Results Grid */}
+          {/* Problem & Solution Grid (Structure officielle §6.3.2) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Objectives */}
-            <div className="bg-blue-50/60 rounded-2xl p-5 border border-blue-100 space-y-3">
-              <h3 className="font-extrabold text-[#0B3B60] text-sm flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                Objectifs clés du projet
-              </h3>
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-700">
-                {selectedInitiative.objectives.map((obj, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
-                    <span>{obj}</span>
-                  </li>
-                ))}
-              </ul>
+            {/* Problème identifié */}
+            <div className="bg-amber-50/70 rounded-2xl p-6 border border-amber-200/80 space-y-2.5">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                Problème identifié dans le quartier
+              </span>
+              <p className="text-slate-800 text-sm sm:text-base leading-relaxed">
+                {selectedInitiative.problem || "Aucune description du problème fournie."}
+              </p>
             </div>
 
-            {/* Results & Key Metrics */}
-            <div className="bg-emerald-50/60 rounded-2xl p-5 border border-emerald-100 space-y-3">
-              <h3 className="font-extrabold text-emerald-900 text-sm flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
-                Impact & résultats concrets obtenus
-              </h3>
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-700">
-                {selectedInitiative.results.map((res, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                    <span className="font-medium">{res}</span>
-                  </li>
-                ))}
-              </ul>
+            {/* Solution citoyenne */}
+            <div className="bg-sky-50/70 rounded-2xl p-6 border border-sky-200/80 space-y-2.5">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-sky-900 flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 text-[#38B6FF]" />
+                Solution apportée par le porteur
+              </span>
+              <p className="text-slate-800 text-sm sm:text-base leading-relaxed">
+                {selectedInitiative.solution || "Aucune description de la solution fournie."}
+              </p>
             </div>
           </div>
+
+          {/* Bénéficiaires directs du projet */}
+          {selectedInitiative.beneficiaries && (
+            <div className="bg-[#EFF8FF] rounded-2xl p-5 border border-[#38B6FF]/30 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#08233C] text-[#FADB58] flex items-center justify-center flex-shrink-0 font-bold">
+                <Target className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-[#0B3B60] block uppercase tracking-wider">
+                  Bénéficiaires directs du projet :
+                </span>
+                <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                  {selectedInitiative.beneficiaries}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Objectifs & Résultats (si fournis) */}
+          {(objectivesList.length > 0 || resultsList.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              {objectivesList.length > 0 && (
+                <div className="bg-blue-50/60 rounded-2xl p-5 border border-blue-100 space-y-3">
+                  <h3 className="font-extrabold text-[#0B3B60] text-sm flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    Objectifs clés du projet
+                  </h3>
+                  <ul className="space-y-2 text-xs sm:text-sm text-slate-700">
+                    {objectivesList.map((obj, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
+                        <span>{obj}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {resultsList.length > 0 && (
+                <div className="bg-[#EFF8FF] rounded-2xl p-5 border border-[#38B6FF]/30 space-y-3">
+                  <h3 className="font-extrabold text-[#0B3B60] text-sm flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#38B6FF]" />
+                    Impact & résultats concrets obtenus
+                  </h3>
+                  <ul className="space-y-2 text-xs sm:text-sm text-slate-700">
+                    {resultsList.map((res, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-[#38B6FF] mt-0.5 flex-shrink-0" />
+                        <span className="font-medium">{res}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Photo Gallery */}
-          {selectedInitiative.galleryImages && selectedInitiative.galleryImages.length > 0 && (
+          {galleryItems.length > 0 && (
             <div className="space-y-3">
               <h3 className="font-extrabold text-[#08233C] text-base flex items-center gap-2">
                 <ImageIcon className="w-5 h-5 text-[#38B6FF]" />
-                Galerie photos du terrain ({selectedInitiative.galleryImages.length})
+                Galerie photos du terrain ({galleryItems.length})
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {selectedInitiative.galleryImages.map((imgUrl, idx) => (
+                {galleryItems.map((item, idx) => (
                   <div
                     key={idx}
-                    onClick={() => setActivePhoto(imgUrl)}
+                    onClick={() => setActivePhoto(item.url)}
                     className="relative rounded-2xl overflow-hidden aspect-video bg-slate-100 border border-slate-200 cursor-pointer group shadow-xs hover:shadow-md transition-all"
                   >
                     <img
-                      src={imgUrl}
-                      alt={`Photo ${idx + 1}`}
+                      src={item.url}
+                      alt={item.caption || `Photo ${idx + 1}`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
@@ -389,7 +492,7 @@ export const InitiativeDetailView: React.FC = () => {
           {/* Return & Share Bottom Footer */}
           <div className="pt-8 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
             <button
-              onClick={() => setSelectedInitiative(null)}
+              onClick={handleBack}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#08233C] text-white font-extrabold text-xs sm:text-sm hover:bg-[#0B3B60] transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -539,13 +642,13 @@ export const InitiativeDetailView: React.FC = () => {
         </div>
       </section>
 
-      {/* Lightbox for gallery images if open */}
+      {/* Modal Agrandissement Photo */}
       {activePhoto && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+        <div
           onClick={() => setActivePhoto(null)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
         >
-          <div className="relative max-w-4xl max-h-[90vh]">
+          <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <img
               src={activePhoto}
               alt="Agrandissement"
@@ -553,7 +656,7 @@ export const InitiativeDetailView: React.FC = () => {
             />
             <button
               onClick={() => setActivePhoto(null)}
-              className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 text-xs font-bold"
+              className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 text-xs font-bold cursor-pointer"
             >
               Fermer ✕
             </button>

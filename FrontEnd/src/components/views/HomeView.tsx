@@ -277,7 +277,7 @@ export const HomeView: React.FC = () => {
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <span className="block text-3xl sm:text-4xl font-extrabold text-emerald-600 mb-1">
+            <span className="block text-3xl sm:text-4xl font-extrabold text-[#38B6FF] mb-1">
               92%
             </span>
             <span className="text-xs font-semibold text-slate-600">

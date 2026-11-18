@@ -1,22 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  --color-innov-yellow: #FADB58;
-  --color-innov-blue: #38B6FF;
+  /* ── Couleurs InnovSahel ── */
+  --color-innov-blue: #38B6FF;         /* Bleu primaire */
+  --color-innov-yellow: #FADB58;       /* Jaune secondaire */
+  --color-innov-navy: #08233C;         /* Bleu nuit profond */
+  --color-innov-dark: #0B3B60;         /* Bleu profond */
+  --color-innov-mid: #1A5276;          /* Bleu intermédiaire */
+  --color-innov-light: #EFF8FF;        /* Bleu très clair */
+  --color-innov-yellow-dark: #E8C31A;  /* Jaune foncé hover */
+  --color-innov-yellow-light: #FFF8D6; /* Jaune très clair bg */
+
+  /* Alias legacy */
   --color-innov-blue-dark: #0B3B60;
   --color-innov-blue-navy: #08233C;
   --color-innov-slate: #1E293B;
+
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
-/* Custom subtle scrollbar for admin sidebar and scrollable elements */
+/* ── Scrollbar Admin — couleurs InnovSahel ── */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(20, 184, 166, 0.35) transparent;
+  scrollbar-color: rgba(56, 182, 255, 0.30) transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+  width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -24,11 +34,108 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(20, 184, 166, 0.3);
+  background: rgba(56, 182, 255, 0.28);
   border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(20, 184, 166, 0.6);
+  background: rgba(56, 182, 255, 0.55);
 }
+
+/* ── Transition globale douce ── */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Tiptap Rich Text Editor Styling ── */
+.tiptap-editor-wrapper .ProseMirror {
+  outline: none !important;
+}
+
+.tiptap-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #94A3B8;
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap-editor-wrapper .ProseMirror h2,
+.article-rendered-content h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #08233C;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.tiptap-editor-wrapper .ProseMirror h3,
+.article-rendered-content h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0B3B60;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.35;
+}
+
+.tiptap-editor-wrapper .ProseMirror p,
+.article-rendered-content p {
+  margin-bottom: 0.75rem;
+  line-height: 1.65;
+}
+
+.tiptap-editor-wrapper .ProseMirror ul,
+.article-rendered-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-editor-wrapper .ProseMirror ol,
+.article-rendered-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-editor-wrapper .ProseMirror li,
+.article-rendered-content li {
+  margin-bottom: 0.25rem;
+}
+
+.tiptap-editor-wrapper .ProseMirror blockquote,
+.article-rendered-content blockquote {
+  border-left: 4px solid #38B6FF;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #1E293B;
+  background-color: #EFF8FF;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap-editor-wrapper .ProseMirror hr,
+.article-rendered-content hr {
+  border: none;
+  border-top: 1px solid #E2E8F0;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.tiptap-editor-wrapper .ProseMirror a,
+.article-rendered-content a {
+  color: #38B6FF;
+  text-decoration: underline;
+  font-weight: 600;
+}
+.tiptap-editor-wrapper .ProseMirror a:hover,
+.article-rendered-content a:hover {
+  color: #0B3B60;
+}
+
 

@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ContributionStatus } from '../../types';
-import { 
-  User, 
-  ShieldCheck, 
-  PlusCircle, 
-  Eye, 
-  MessageSquare, 
-  FileText, 
-  Download, 
-  CheckCircle2, 
-  Clock, 
-  Send, 
-  AlertTriangle, 
-  Lightbulb, 
-  Trash2, 
-  Lock, 
-  TrendingUp, 
-  Users, 
+import {
+  User,
+  ShieldCheck,
+  PlusCircle,
+  Eye,
+  MessageSquare,
+  FileText,
+  Download,
+  CheckCircle2,
+  Clock,
+  Send,
+  AlertTriangle,
+  Lightbulb,
+  Trash2,
+  Lock,
+  TrendingUp,
+  Users,
   Flag,
   Sparkles,
   ExternalLink,
@@ -30,22 +30,22 @@ import { LoginView } from './LoginView';
 import { getPublicationCover, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const DashboardView: React.FC = () => {
-  const { 
-    currentUserRole, 
-    setCurrentUserRole, 
-    activeUser, 
+  const {
+    currentUserRole,
+    setCurrentUserRole,
+    activeUser,
     logout,
-    setActiveModal, 
-    publications, 
-    initiatives, 
-    comments, 
-    contributions, 
-    updateContributionStatus, 
-    deletePublication, 
-    deleteComment, 
-    users, 
-    createUserAccount, 
-    toggleUserStatus, 
+    setActiveModal,
+    publications,
+    initiatives,
+    comments,
+    contributions,
+    updateContributionStatus,
+    deletePublication,
+    deleteComment,
+    users,
+    createUserAccount,
+    toggleUserStatus,
     communes,
     openPublicationById
   } = useApp();
@@ -105,7 +105,7 @@ export const DashboardView: React.FC = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `InnovSahel_Contributions_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `InnovSahel_Contributions_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -361,7 +361,7 @@ export const DashboardView: React.FC = () => {
         <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
           <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Visiteurs</span>
           <span className="text-2xl font-black text-[#08233C]">8 420</span>
-          <span className="text-[9px] text-emerald-600 font-bold block">+18% ce mois</span>
+          <span className="text-[9px] text-[#38B6FF] font-bold block">+18% ce mois</span>
         </div>
 
         <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
@@ -384,7 +384,7 @@ export const DashboardView: React.FC = () => {
 
         <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
           <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Idées reçues</span>
-          <span className="text-2xl font-black text-emerald-600">
+          <span className="text-2xl font-black text-[#0B3B60]">
             {contributions.filter(c => c.type === 'idee').length}
           </span>
           <span className="text-[9px] text-slate-400">Propositions</span>
@@ -471,15 +471,13 @@ export const DashboardView: React.FC = () => {
               return (
                 <div
                   key={contrib.id}
-                  className={`p-4 rounded-2xl border transition-all ${
-                    isSelected ? 'border-[#38B6FF] bg-sky-50/50 shadow-xs' : 'border-slate-200 bg-slate-50/60 hover:bg-slate-50'
-                  }`}
+                  className={`p-4 rounded-2xl border transition-all ${isSelected ? 'border-[#38B6FF] bg-sky-50/50 shadow-xs' : 'border-slate-200 bg-slate-50/60 hover:bg-slate-50'
+                    }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                        contrib.type === 'idee' ? 'bg-[#FADB58] text-[#08233C]' : 'bg-red-500 text-white'
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${contrib.type === 'idee' ? 'bg-[#FADB58] text-[#08233C]' : 'bg-red-500 text-white'
+                        }`}>
                         {contrib.type === 'idee' ? '💡 Idée' : '⚠️ Signalement'}
                       </span>
                       <span className="font-bold text-xs text-slate-800">
@@ -492,15 +490,14 @@ export const DashboardView: React.FC = () => {
 
                     {/* Status Badge */}
                     <div className="flex items-center gap-2">
-                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                        contrib.internalStatus === 'nouveau'
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${contrib.internalStatus === 'nouveau'
                           ? 'bg-blue-100 text-blue-800'
                           : contrib.internalStatus === 'vu'
                             ? 'bg-amber-100 text-amber-800'
                             : contrib.internalStatus === 'transmis'
                               ? 'bg-purple-100 text-purple-800'
                               : 'bg-emerald-100 text-emerald-800'
-                      }`}>
+                        }`}>
                         Statut : {contrib.internalStatus}
                       </span>
                       <button
@@ -549,9 +546,8 @@ export const DashboardView: React.FC = () => {
                             <button
                               key={st}
                               onClick={() => updateContributionStatus(contrib.id, st)}
-                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                contrib.internalStatus === st ? 'bg-[#08233C] text-[#FADB58]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                              }`}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${contrib.internalStatus === st ? 'bg-[#08233C] text-[#FADB58]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
                             >
                               {st === 'transmis' ? 'Transmis à la commune' : st.charAt(0).toUpperCase() + st.slice(1)}
                             </button>
@@ -603,7 +599,7 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {accountSuccessMsg && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">
+          <div className="p-3 bg-[#EFF8FF] border border-[#38B6FF]/40 text-[#08233C] rounded-xl text-xs font-bold">
             {accountSuccessMsg}
           </div>
         )}
@@ -671,9 +667,8 @@ export const DashboardView: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-slate-900">{user.name}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
-                    user.status === 'actif' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${user.status === 'actif' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                    }`}>
                     {user.status}
                   </span>
                 </div>
@@ -711,9 +706,8 @@ export const DashboardView: React.FC = () => {
           {comments.map(c => (
             <div
               key={c.id}
-              className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-3 ${
-                c.reported ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'
-              }`}
+              className={`p-3 rounded-xl border text-xs flex items-center justify-between gap-3 ${c.reported ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'
+                }`}
             >
               <div>
                 <div className="flex items-center gap-2 mb-0.5">

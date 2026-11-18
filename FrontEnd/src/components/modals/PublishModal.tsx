@@ -6,16 +6,6 @@ import {
   Video, 
   Upload, 
   X, 
-  Bold, 
-  Italic, 
-  Underline, 
-  Strikethrough, 
-  Heading2, 
-  Heading3, 
-  List, 
-  ListOrdered, 
-  Quote, 
-  Link as LinkIcon, 
   Check, 
   Eye, 
   RotateCcw,
@@ -24,6 +14,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageUpload, MultiImageUpload } from '../shared/ImageUpload';
+import { RichTextEditor } from '../shared/RichTextEditor';
+import { ArticleContent } from '../shared/ArticleContent';
 
 export const PublishModal: React.FC = () => {
   const { 
@@ -95,18 +87,6 @@ export const PublishModal: React.FC = () => {
     setCarouselImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Rich text formatting simulation: insert markup/tags
-  const applyFormat = (tag: string) => {
-    if (tag === 'bold') setContent(prev => `${prev}\n**Texte en gras** `);
-    else if (tag === 'italic') setContent(prev => `${prev}\n*Texte en italique* `);
-    else if (tag === 'h2') setContent(prev => `${prev}\n\n## Titre de section\n`);
-    else if (tag === 'h3') setContent(prev => `${prev}\n\n### Sous-titre\n`);
-    else if (tag === 'list') setContent(prev => `${prev}\n- Élément de liste à puces\n- Deuxième élément`);
-    else if (tag === 'numbered') setContent(prev => `${prev}\n1. Première étape\n2. Deuxième étape`);
-    else if (tag === 'quote') setContent(prev => `${prev}\n> « Citation marquante d'un habitant ou du maire »`);
-    else if (tag === 'link') setContent(prev => `${prev} [Lien web](https://impactsahel.org) `);
-  };
-
   const handleSave = async (status: 'draft' | 'published') => {
     if (!title.trim()) {
       setFormError('Le titre principal est obligatoire.');
@@ -167,12 +147,12 @@ export const PublishModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-xs overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col"
+          className="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[96vh] flex flex-col"
         >
           {/* Header */}
           <div className="bg-[#08233C] p-4 sm:p-5 text-white flex items-center justify-between border-b border-white/10 flex-shrink-0">
@@ -269,8 +249,8 @@ export const PublishModal: React.FC = () => {
                   </div>
                 )}
 
-                <div className="whitespace-pre-wrap text-slate-800 leading-relaxed pt-2">
-                  {content || 'Contenu détaillé de la publication...'}
+                <div className="pt-2">
+                  <ArticleContent content={content || 'Contenu détaillé de la publication...'} />
                 </div>
               </div>
             ) : (
@@ -416,89 +396,22 @@ export const PublishModal: React.FC = () => {
                   </div>
                 )}
 
-                {/* 7.1.4 Éditeur de texte enrichi */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                {/* 7.1.4 Éditeur de texte enrichi Tiptap */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
                     <label className="block text-xs font-bold text-slate-800">
-                      Corps de la publication (Texte enrichi) <span className="text-red-500">*</span>
+                      Corps de la publication (Éditeur enrichi Tiptap) <span className="text-red-500">*</span>
                     </label>
+                    <span className="text-[11px] text-slate-400">
+                      Mise en forme : titres, gras, listes, citations, liens
+                    </span>
                   </div>
 
-                  {/* Formatting Toolbar */}
-                  <div className="flex flex-wrap items-center gap-1 p-1.5 bg-slate-100 rounded-t-xl border border-b-0 border-slate-300">
-                    <button
-                      type="button"
-                      onClick={() => applyFormat('bold')}
-                      className="p-1.5 rounded hover:bg-white text-slate-700 font-bold text-xs cursor-pointer"
-                      title="Gras"
-                    >
-                      <Bold className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormat('italic')}
-                      className="p-1.5 rounded hover:bg-white text-slate-700 italic text-xs cursor-pointer"
-                      title="Italique"
-                    >
-                      <Italic className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormat('h2')}
-                      className="p-1.5 rounded hover:bg-white text-slate-700 text-xs font-bold cursor-pointer"
-                      title="Titre H2"
-                    >
-                      <Heading2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormat('h3')}
-                      className="p-1.5 rounded hover:bg-white text-slate-700 text-xs font-bold cursor-pointer"
-                      title="Sous-titre H3"
-                    >
-                      <Heading3 className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="w-px h-4 bg-slate-300 mx-1" />
-                    <button
-                      type="button"
-                      onClick={() => applyFormat('list')}
-                      className="p-1.5 rounded hover:bg-white text-slate-700 text-xs cursor-pointer"
-                      title="Liste à puces"
-                    >
-                      <List className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormat('numbered')}
-                      className="p-1.5 rounded hover:bg-white text-slate-700 text-xs cursor-pointer"
-                      title="Liste numérotée"
-                    >
-                      <ListOrdered className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormat('quote')}
-                      className="p-1.5 rounded hover:bg-white text-slate-700 text-xs cursor-pointer"
-                      title="Citation"
-                    >
-                      <Quote className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormat('link')}
-                      className="p-1.5 rounded hover:bg-white text-slate-700 text-xs cursor-pointer"
-                      title="Lien hypertexte"
-                    >
-                      <LinkIcon className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  <textarea
-                    rows={6}
+                  <RichTextEditor
                     value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    onChange={setContent}
                     placeholder="Rédigez ici le compte-rendu, les avancées, les témoignages ou les annonces citoyennes..."
-                    className="w-full bg-slate-50 border border-slate-300 rounded-b-xl p-3 text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF] resize-none"
+                    minHeight="280px"
                   />
                 </div>
               </>

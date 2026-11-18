@@ -155,10 +155,10 @@ export const AdminAdminsTab: React.FC = () => {
 
       {/* Alerts */}
       {successMsg && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700">
-          <CheckCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="flex items-center gap-3 p-4 bg-[#EFF8FF] border border-[#38B6FF]/40 rounded-xl text-[#08233C]">
+          <CheckCircle className="w-5 h-5 text-[#38B6FF] flex-shrink-0" />
           <p className="text-sm font-medium">{successMsg}</p>
-          <button onClick={() => setSuccessMsg(null)} className="ml-auto text-emerald-400 hover:text-emerald-600 cursor-pointer text-lg font-bold">×</button>
+          <button onClick={() => setSuccessMsg(null)} className="ml-auto text-[#0B3B60] hover:text-[#08233C] cursor-pointer text-lg font-bold">×</button>
         </div>
       )}
       {errorMsg && (
@@ -360,7 +360,7 @@ export const AdminAdminsTab: React.FC = () => {
             {admins.map(admin => (
               <div key={admin.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-black text-sm flex items-center justify-center shadow-sm">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#38B6FF] to-[#0B3B60] text-white font-black text-sm flex items-center justify-center shadow-sm">
                     {admin.name.charAt(0)}
                   </div>
                   <div>
@@ -490,7 +490,7 @@ export const AdminAdminsTab: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setCreatedAdminSuccessModal(null)}
-                className="w-full py-3 bg-[#062326] hover:bg-[#093539] text-white rounded-xl font-extrabold text-sm shadow-md transition-all cursor-pointer text-center"
+                className="w-full py-3 bg-[#08233C] hover:bg-[#0B3B60] text-white rounded-xl font-extrabold text-sm shadow-md transition-all cursor-pointer text-center"
               >
                 Compris & Fermer
               </button>

@@ -119,8 +119,8 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-black tracking-wider uppercase text-emerald-800">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#38B6FF] animate-pulse" />
+              <span className="text-[11px] font-black tracking-wider uppercase text-[#0B3B60]">
                 Espace Porteur de Projet • Statistiques Personnelles
               </span>
             </div>
@@ -137,12 +137,12 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
               onClick={() => setActiveTab('accueil')}
               className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-300 shadow-xs transition-all cursor-pointer"
             >
-              <ExternalLink className="w-4 h-4 text-emerald-600" />
+              <ExternalLink className="w-4 h-4 text-[#38B6FF]" />
               <span>Voir sur la plateforme</span>
             </button>
             <button
               onClick={() => onNavigateTab('mon-initiative')}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-[#062326] font-black text-xs shadow-md transition-all cursor-pointer active:scale-95"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#38B6FF] hover:bg-[#0B3B60] text-white font-black text-xs shadow-md transition-all cursor-pointer active:scale-95"
             >
               <Sparkles className="w-4 h-4" />
               <span>Gérer mon initiative</span>
@@ -155,7 +155,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
           <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 uppercase">Initiatives gérées</span>
-              <div className="p-2 rounded-xl bg-teal-50 text-teal-600">
+              <div className="p-2 rounded-xl bg-[#EFF8FF] text-[#38B6FF]">
                 <Building2 className="w-5 h-5" />
               </div>
             </div>
@@ -188,7 +188,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
           <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 uppercase">Réponses apportées</span>
-              <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+              <div className="p-2 rounded-xl bg-[#EFF8FF] text-[#38B6FF]">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
             </div>
@@ -203,12 +203,12 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
           <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-black text-slate-900 text-base flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-emerald-600" />
+                <Building2 className="w-4 h-4 text-[#38B6FF]" />
                 Mes fiches d'initiative ({myInitiatives.length})
               </h3>
               <button
                 onClick={() => onNavigateTab('mon-initiative')}
-                className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
+                className="text-xs font-bold text-[#0B3B60] hover:text-[#38B6FF] hover:underline cursor-pointer"
               >
                 Ouvrir la gestion →
               </button>
@@ -251,12 +251,12 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
           <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-black text-slate-900 text-base flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-teal-600" />
+                <MessageSquare className="w-4 h-4 text-[#38B6FF]" />
                 Dernières réactions citoyennes
               </h3>
               <button
                 onClick={() => onNavigateTab('mon-initiative')}
-                className="text-xs font-bold text-teal-700 hover:underline cursor-pointer"
+                className="text-xs font-bold text-[#0B3B60] hover:text-[#38B6FF] hover:underline cursor-pointer"
               >
                 Répondre aux questions →
               </button>
@@ -301,8 +301,8 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] font-black tracking-wider uppercase text-emerald-800">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#38B6FF] animate-pulse" />
+            <span className="text-[11px] font-black tracking-wider uppercase text-[#0B3B60]">
               Supervision Générale • Temps Réel
             </span>
           </div>
@@ -323,7 +323,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
             className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-300 shadow-xs transition-all cursor-pointer hover:border-slate-400 active:scale-95"
             title="Exporter toutes les données du dashboard au format CSV"
           >
-            <Download className="w-4 h-4 text-emerald-600" />
+            <Download className="w-4 h-4 text-[#38B6FF]" />
             <span>Export Tableur (CSV)</span>
           </button>
 
@@ -331,16 +331,16 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
           <button
             id="admin-header-goto-platform-btn"
             onClick={() => setActiveTab('accueil')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#062326] hover:bg-[#0A363A] text-white font-bold text-xs shadow-md transition-all cursor-pointer active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#08233C] hover:bg-[#0B3B60] text-white font-bold text-xs shadow-md transition-all cursor-pointer active:scale-95"
           >
-            <ExternalLink className="w-4 h-4 text-teal-300" />
+            <ExternalLink className="w-4 h-4 text-[#38B6FF]" />
             <span>Aller sur la plateforme</span>
           </button>
 
           {/* Quick Publish shortcut */}
           <button
             onClick={() => onNavigateTab('publications')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-[#062326] font-black text-xs shadow-md transition-all cursor-pointer active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#FADB58] hover:bg-[#E8C31A] text-[#08233C] font-black text-xs shadow-md transition-all cursor-pointer active:scale-95"
           >
             <PlusCircle className="w-4 h-4" />
             <span>+ Publication</span>
@@ -349,43 +349,43 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
       </div>
 
       {downloadSuccess && (
-        <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs font-bold text-emerald-900 flex items-center justify-between animate-in fade-in">
+        <div className="p-3 bg-[#EFF8FF] border border-[#38B6FF]/40 rounded-2xl text-xs font-bold text-[#08233C] flex items-center justify-between animate-in fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-[#38B6FF]" />
             <span>Fichier tableur (CSV) généré et téléchargé avec succès !</span>
           </div>
-          <span className="text-[10px] text-emerald-700">Encodage UTF-8 (Excel / LibreOffice)</span>
+          <span className="text-[10px] text-[#0B3B60]">Encodage UTF-8 (Excel / LibreOffice)</span>
         </div>
       )}
 
       {/* Row 1: Key Metrics Grid (Visiteurs, Publications, Initiatives, Porteurs, Idées, Signalements, Commentaires) */}
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
         {/* Metric 1: Visiteurs */}
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-emerald-300 transition-colors">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-[#38B6FF]/50 transition-colors">
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
                 Visiteurs
               </span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="w-2 h-2 rounded-full bg-[#38B6FF]" />
             </div>
             <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight block">
               {visitorsCount}
             </span>
           </div>
-          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
+          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-1 text-[10px] text-[#38B6FF] font-bold">
             <TrendingUp className="w-3 h-3" />
             <span>{visitorsTrend}</span>
           </div>
         </div>
 
         {/* Metric 2: Publications */}
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-teal-300 transition-colors">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-[#38B6FF]/50 transition-colors">
           <div>
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
               Publications
             </span>
-            <span className="text-2xl sm:text-3xl font-black text-teal-600 tracking-tight block">
+            <span className="text-2xl sm:text-3xl font-black text-[#38B6FF] tracking-tight block">
               {publicationsCount}
             </span>
           </div>
@@ -400,7 +400,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
               Initiatives
             </span>
-            <span className="text-2xl sm:text-3xl font-black text-[#062326] tracking-tight block">
+            <span className="text-2xl sm:text-3xl font-black text-[#08233C] tracking-tight block">
               {initiativesCount}
             </span>
           </div>
@@ -425,12 +425,12 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
         </div>
 
         {/* Metric 5: Idées reçues */}
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-emerald-300 transition-colors">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-[#FADB58] transition-colors">
           <div>
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
               Idées reçues
             </span>
-            <span className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight block">
+            <span className="text-2xl sm:text-3xl font-black text-[#0B3B60] tracking-tight block">
               {ideasCount}
             </span>
           </div>
@@ -487,7 +487,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
                   Taux de Traitement Citoyen
                 </h3>
               </div>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[#38B6FF]/15 text-[#0B3B60]">
                 Optimal
               </span>
             </div>
@@ -507,7 +507,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
                   cx="80"
                   cy="80"
                   r="64"
-                  stroke="#10B981"
+                  stroke="#38B6FF"
                   strokeWidth="12"
                   strokeDasharray={402}
                   strokeDashoffset={402 * (1 - 0.78)}
@@ -536,7 +536,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
             </div>
             <div className="p-2 bg-slate-50 rounded-xl">
               <span className="text-[10px] text-slate-400 block">Satisfaction</span>
-              <span className="font-extrabold text-emerald-600">4.8 / 5</span>
+              <span className="font-extrabold text-[#38B6FF]">4.8 / 5</span>
             </div>
           </div>
         </div>
@@ -555,7 +555,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
               </div>
               <button 
                 onClick={() => onNavigateTab('porteurs')}
-                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer flex items-center gap-1"
+                className="text-xs font-bold text-[#38B6FF] hover:text-[#0B3B60] cursor-pointer flex items-center gap-1"
               >
                 <span>Détails</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -566,20 +566,20 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1">
                   <span className="text-slate-700">Recyclage & Pavés Plastiques</span>
-                  <span className="text-emerald-600">34%</span>
+                  <span className="text-[#38B6FF]">34%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '34%' }} />
+                  <div className="h-full bg-[#38B6FF] rounded-full" style={{ width: '34%' }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1">
                   <span className="text-slate-700">Maraîchage Fluvial & Bio</span>
-                  <span className="text-teal-600">28%</span>
+                  <span className="text-[#0B3B60]">28%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div className="h-full bg-teal-500 rounded-full" style={{ width: '28%' }} />
+                  <div className="h-full bg-[#0B3B60] rounded-full" style={{ width: '28%' }} />
                 </div>
               </div>
 
@@ -612,13 +612,13 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
         </div>
 
         {/* Card 3: WhatsApp Community Widget (exact match to "Let's join our community" from the image) */}
-        <div className="rounded-3xl p-6 bg-gradient-to-br from-[#062326] via-[#092B2E] to-[#041A1C] text-white border border-teal-500/20 shadow-lg relative overflow-hidden flex flex-col justify-between">
+        <div className="rounded-3xl p-6 bg-gradient-to-br from-[#08233C] via-[#0B3B60] to-[#08233C] text-white border border-[#38B6FF]/20 shadow-lg relative overflow-hidden flex flex-col justify-between">
           {/* Decorative subtle ambient lights */}
-          <div className="absolute top-0 right-0 w-44 h-44 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
-          <div className="absolute bottom-0 left-0 w-36 h-36 bg-teal-400/10 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
+          <div className="absolute top-0 right-0 w-44 h-44 bg-[#38B6FF]/10 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
+          <div className="absolute bottom-0 left-0 w-36 h-36 bg-[#FADB58]/10 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
 
           <div className="relative z-10 space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-black uppercase">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#38B6FF]/20 border border-[#38B6FF]/30 text-[#38B6FF] text-[10px] font-black uppercase">
               <MessageCircle className="w-3.5 h-3.5" />
               <span>Réseau Municipal Officiel</span>
             </div>
@@ -627,7 +627,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
               <h3 className="text-lg font-black text-white leading-tight">
                 Chaînes WhatsApp des 6 Communes
               </h3>
-              <p className="text-xs text-teal-200/80 mt-1 leading-relaxed">
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
                 Chaque commune de Bamako dispose d'un canal WhatsApp dédié pour diffuser alertes, communiqués et initiatives.
               </p>
             </div>
@@ -640,19 +640,19 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
                   href={c.whatsappChannelUrl || 'https://whatsapp.com'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-2 rounded-xl bg-white/10 hover:bg-emerald-500 text-white hover:text-[#062326] border border-white/10 hover:border-emerald-400 transition-all font-bold text-xs group cursor-pointer"
+                  className="flex items-center justify-between p-2 rounded-xl bg-white/10 hover:bg-[#38B6FF] text-white hover:text-[#08233C] border border-white/10 hover:border-[#38B6FF] transition-all font-bold text-xs group cursor-pointer"
                   title={`Rejoindre la chaîne WhatsApp de la ${c.name}`}
                 >
                   <span className="truncate">{c.name}</span>
-                  <ExternalLink className="w-3 h-3 text-emerald-300 group-hover:text-[#062326] flex-shrink-0" />
+                  <ExternalLink className="w-3 h-3 text-[#38B6FF] group-hover:text-[#08233C] flex-shrink-0" />
                 </a>
               ))}
             </div>
           </div>
 
-          <div className="relative z-10 mt-4 pt-3 border-t border-teal-500/20 flex items-center justify-between text-[11px] text-teal-300/80">
+          <div className="relative z-10 mt-4 pt-3 border-t border-[#38B6FF]/20 flex items-center justify-between text-[11px] text-slate-300">
             <span>6/6 Chaînes actives</span>
-            <span className="font-bold text-emerald-400">Diffusion vérifiée</span>
+            <span className="font-bold text-[#FADB58]">Diffusion vérifiée</span>
           </div>
         </div>
       </section>
@@ -674,7 +674,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
 
           <button
             onClick={() => onNavigateTab('contributions')}
-            className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1.5 cursor-pointer"
+            className="text-xs font-bold text-[#38B6FF] hover:text-[#0B3B60] flex items-center gap-1.5 cursor-pointer"
           >
             <span>Ouvrir l’onglet Contributions</span>
             <ChevronRight className="w-4 h-4" />
@@ -693,7 +693,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-1.5">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                        contrib.type === 'idee' ? 'bg-amber-100 text-amber-900' : 'bg-red-100 text-red-700'
+                        contrib.type === 'idee' ? 'bg-[#FADB58]/20 text-[#08233C]' : 'bg-red-100 text-red-700'
                       }`}>
                         {contrib.type === 'idee' ? '💡 Idée' : '⚠️ Signalement'}
                       </span>
@@ -714,7 +714,7 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({ onNavigate
                   </span>
                   <button
                     onClick={() => onNavigateTab('contributions')}
-                    className="text-[11px] font-extrabold text-teal-700 hover:underline cursor-pointer"
+                    className="text-[11px] font-extrabold text-[#38B6FF] hover:text-[#0B3B60] hover:underline cursor-pointer"
                   >
                     Traiter →
                   </button>

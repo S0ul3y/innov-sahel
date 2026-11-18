@@ -92,19 +92,19 @@ export const AboutView: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-[#38B6FF] flex-shrink-0 mt-0.5" />
             <span>L'identification et l'accompagnement technique des jeunes et femmes porteurs de projets à fort impact social.</span>
           </div>
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-[#38B6FF] flex-shrink-0 mt-0.5" />
             <span>Le dialogue permanent avec les 6 équipes municipales du District de Bamako pour la prise en compte des contributions.</span>
           </div>
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-[#38B6FF] flex-shrink-0 mt-0.5" />
             <span>La formation au numérique, la mise à disposition de kits de communication et la maintenance de la plateforme InnovSahel.</span>
           </div>
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-[#38B6FF] flex-shrink-0 mt-0.5" />
             <span>La restitution périodique sous forme de rapports de synthèse remis aux maires et aux partenaires financiers.</span>
           </div>
         </div>
@@ -139,7 +139,7 @@ export const AboutView: React.FC = () => {
       {/* Charte & Protection des Données (Section 12) */}
       <section className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-4">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-emerald-600" />
+          <ShieldCheck className="w-5 h-5 text-[#38B6FF]" />
           <h3 className="font-extrabold text-base text-[#08233C]">
             Protection des données personnelles & Charte citoyenne
           </h3>

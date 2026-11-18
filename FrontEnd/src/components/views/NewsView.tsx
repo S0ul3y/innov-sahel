@@ -24,7 +24,7 @@ export const NewsView: React.FC = () => {
   } = useApp();
 
   const [communeFilter, setCommuneFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'commune_news' | 'initiative_update'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'commune_news' | 'activity' | 'initiative_update'>('all');
 
   const filteredNews = publications.filter(pub => {
     const matchesCommune = communeFilter === 'all' || pub.communeId === communeFilter;
@@ -79,7 +79,15 @@ export const NewsView: React.FC = () => {
               typeFilter === 'commune_news' ? 'bg-[#08233C] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Mairies & IMPACT SAHEL
+            Mairies
+          </button>
+          <button
+            onClick={() => setTypeFilter('activity')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              typeFilter === 'activity' ? 'bg-[#08233C] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Activités
           </button>
           <button
             onClick={() => setTypeFilter('initiative_update')}
@@ -87,7 +95,7 @@ export const NewsView: React.FC = () => {
               typeFilter === 'initiative_update' ? 'bg-[#08233C] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Avancement des initiatives
+            Initiatives
           </button>
         </div>
 
@@ -134,9 +142,17 @@ export const NewsView: React.FC = () => {
                     />
                     <div className="absolute top-3 inset-x-3 flex items-center justify-between">
                       <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase shadow-xs ${
-                        pub.type === 'commune_news' ? 'bg-[#08233C] text-white' : 'bg-[#FADB58] text-[#08233C]'
+                        pub.type === 'commune_news'
+                          ? 'bg-[#08233C] text-white'
+                          : pub.type === 'activity'
+                            ? 'bg-amber-100 text-amber-900'
+                            : 'bg-[#FADB58] text-[#08233C]'
                       }`}>
-                        {pub.type === 'commune_news' ? 'Actualité Mairie' : 'Projet citoyen'}
+                        {pub.type === 'commune_news'
+                          ? 'Actualité Mairie'
+                          : pub.type === 'activity'
+                            ? 'Activité'
+                            : 'Projet citoyen'}
                       </span>
 
                       <span className="bg-black/60 text-white backdrop-blur-xs text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">

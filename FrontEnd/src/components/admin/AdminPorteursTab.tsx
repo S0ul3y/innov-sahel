@@ -240,7 +240,7 @@ export const AdminPorteursTab: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-900">
+            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#38B6FF]/15 text-[#0B3B60]">
               Lab'Citoyen • Incubateur
             </span>
             <span className="text-xs text-slate-500 font-semibold">
@@ -258,21 +258,21 @@ export const AdminPorteursTab: React.FC = () => {
         <button
           id="admin-create-porteur-btn"
           onClick={handleOpenCreateModal}
-          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#062326] hover:bg-[#093539] text-emerald-300 font-black text-xs shadow-md transition-all cursor-pointer active:scale-95 flex-shrink-0"
+          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#08233C] hover:bg-[#0B3B60] text-[#38B6FF] font-black text-xs shadow-md transition-all cursor-pointer active:scale-95 flex-shrink-0"
         >
-          <UserPlus className="w-4 h-4 text-emerald-400" />
+          <UserPlus className="w-4 h-4 text-[#38B6FF]" />
           <span>+ Ajouter un porteur d'initiative</span>
         </button>
       </div>
 
       {/* Success Banner */}
       {successBanner && (
-        <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs font-bold text-emerald-900 flex items-center justify-between animate-in fade-in">
+        <div className="p-4 bg-[#EFF8FF] border border-[#38B6FF]/40 rounded-2xl text-xs font-bold text-[#08233C] flex items-center justify-between animate-in fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-[#38B6FF] flex-shrink-0" />
             <span>{successBanner}</span>
           </div>
-          <button onClick={() => setSuccessBanner(null)} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
+          <button onClick={() => setSuccessBanner(null)} className="text-[#0B3B60] hover:text-[#08233C] cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -300,7 +300,7 @@ export const AdminPorteursTab: React.FC = () => {
             placeholder="Rechercher par nom, e-mail ou initiative..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50"
           />
         </div>
 
@@ -337,7 +337,7 @@ export const AdminPorteursTab: React.FC = () => {
       {/* Porteurs Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader className="w-8 h-8 text-emerald-500 animate-spin" />
+          <Loader className="w-8 h-8 text-[#38B6FF] animate-spin" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -347,7 +347,7 @@ export const AdminPorteursTab: React.FC = () => {
               <p className="text-sm font-bold text-slate-600">Aucun porteur d'initiative trouvé.</p>
               <button
                 onClick={() => { setSearchTerm(''); setCommuneFilter('all'); setStatusFilter('all'); }}
-                className="text-xs font-bold text-emerald-600 hover:underline cursor-pointer"
+                className="text-xs font-bold text-[#38B6FF] hover:underline cursor-pointer"
               >
                 Réinitialiser les filtres
               </button>
@@ -365,14 +365,14 @@ export const AdminPorteursTab: React.FC = () => {
                 <div
                   key={porteur.id}
                   className={`bg-white rounded-3xl p-6 border transition-all duration-200 shadow-xs flex flex-col justify-between ${
-                    isSuspended ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200 hover:border-emerald-300'
+                    isSuspended ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200 hover:border-[#38B6FF]/50'
                   }`}
                 >
                   <div>
                     {/* Top user row */}
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#062326] to-[#0E494E] text-emerald-300 font-black text-base flex items-center justify-center shadow-xs">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#08233C] to-[#0B3B60] text-[#38B6FF] font-black text-base flex items-center justify-center shadow-xs">
                           {porteur.name.charAt(0)}
                         </div>
                         <div>
@@ -383,7 +383,7 @@ export const AdminPorteursTab: React.FC = () => {
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
                               isSuspended
                                 ? 'bg-red-100 text-red-700'
-                                : 'bg-emerald-100 text-emerald-800'
+                                : 'bg-[#38B6FF]/15 text-[#0B3B60]'
                             }`}>
                               {porteur.status}
                             </span>
@@ -400,7 +400,7 @@ export const AdminPorteursTab: React.FC = () => {
                         title={isSuspended ? "Réactiver l'accès" : "Suspendre l'accès"}
                         className={`p-2 rounded-xl transition-colors cursor-pointer ${
                           isSuspended
-                            ? 'text-emerald-500 hover:bg-emerald-50 hover:text-emerald-700'
+                            ? 'text-[#38B6FF] hover:bg-[#EFF8FF]'
                             : 'text-red-400 hover:bg-red-50 hover:text-red-600'
                         }`}
                       >
@@ -430,17 +430,17 @@ export const AdminPorteursTab: React.FC = () => {
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">
                         Initiative accompagnée :
                       </span>
-                      <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between gap-2">
+                      <div className="p-3 bg-[#EFF8FF] rounded-2xl border border-[#38B6FF]/30 flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                          <span className="text-xs font-bold text-emerald-950 truncate">
+                          <Sparkles className="w-4 h-4 text-[#38B6FF] flex-shrink-0" />
+                          <span className="text-xs font-bold text-[#08233C] truncate">
                             {porteur.initiativeName || 'Projet en cours de labellisation'}
                           </span>
                         </div>
                         {associatedInitiative && (
                           <button
                             onClick={() => openInitiativeById(associatedInitiative.id)}
-                            className="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer flex-shrink-0"
+                            className="text-[11px] font-bold text-[#38B6FF] hover:text-[#0B3B60] hover:underline flex items-center gap-1 cursor-pointer flex-shrink-0"
                           >
                             <span>Voir fiche</span>
                             <ExternalLink className="w-3 h-3" />
@@ -460,7 +460,7 @@ export const AdminPorteursTab: React.FC = () => {
                       {/* Modifier */}
                       <button
                         onClick={() => handleStartEdit(porteur)}
-                        className="p-2 rounded-xl text-slate-600 hover:text-[#062326] hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="p-2 rounded-xl text-slate-600 hover:text-[#08233C] hover:bg-slate-100 transition-colors cursor-pointer"
                         title="Modifier les détails"
                       >
                         <Edit3 className="w-4 h-4" />
@@ -489,7 +489,7 @@ export const AdminPorteursTab: React.FC = () => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#062326] text-emerald-400 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-2xl bg-[#08233C] text-[#38B6FF] flex items-center justify-center font-bold">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
@@ -516,7 +516,7 @@ export const AdminPorteursTab: React.FC = () => {
                   placeholder="Ex: Oumar Traoré"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-medium"
                 />
               </div>
 
@@ -533,7 +533,7 @@ export const AdminPorteursTab: React.FC = () => {
                       placeholder="porteur@projet.ml"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-medium"
                     />
                   </div>
                 </div>
@@ -549,7 +549,7 @@ export const AdminPorteursTab: React.FC = () => {
                       placeholder="+223 76 00 00 00"
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-medium"
                     />
                   </div>
                 </div>
@@ -561,7 +561,7 @@ export const AdminPorteursTab: React.FC = () => {
                     <label className="font-bold text-slate-700 text-xs sm:text-sm">
                       Mot de passe par défaut <span className="text-red-500">*</span>
                     </label>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#FADB58]/20 text-[#08233C] flex items-center gap-1">
                       <Sparkles className="w-2.5 h-2.5" />
                       Proposé & modifiable
                     </span>
@@ -570,7 +570,7 @@ export const AdminPorteursTab: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleRegeneratePassword}
-                      className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
+                      className="flex items-center gap-1 text-[11px] font-bold text-[#0B3B60] hover:text-[#38B6FF] bg-[#EFF8FF] hover:bg-slate-100 px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
                       title="Générer un autre mot de passe aléatoire conforme"
                     >
                       <RefreshCw className="w-3 h-3" />
@@ -584,8 +584,8 @@ export const AdminPorteursTab: React.FC = () => {
                     >
                       {passwordCopied ? (
                         <>
-                          <Check className="w-3 h-3 text-emerald-600" />
-                          <span className="text-emerald-700 font-bold">Copié !</span>
+                          <Check className="w-3 h-3 text-[#38B6FF]" />
+                          <span className="text-[#38B6FF] font-bold">Copié !</span>
                         </>
                       ) : (
                         <>
@@ -598,7 +598,7 @@ export const AdminPorteursTab: React.FC = () => {
                 </div>
 
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#38B6FF]" />
                   <input
                     type={showCreatePassword ? 'text' : 'password'}
                     required
@@ -606,7 +606,7 @@ export const AdminPorteursTab: React.FC = () => {
                     placeholder="Génération en cours..."
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-9 pr-10 py-2.5 bg-emerald-50/30 border border-emerald-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-sm tracking-wider font-semibold shadow-inner"
+                    className="w-full pl-9 pr-10 py-2.5 bg-[#EFF8FF]/50 border border-[#38B6FF]/40 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-mono text-sm tracking-wider font-semibold shadow-inner"
                   />
                   <button
                     type="button"
@@ -621,20 +621,20 @@ export const AdminPorteursTab: React.FC = () => {
                 {/* Composition Checklist */}
                 <div className="mt-2 p-2 bg-slate-50 border border-slate-200/80 rounded-xl flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-600 font-medium">
                   <span className="text-slate-400 font-bold">Composition :</span>
-                  <span className="flex items-center gap-1 text-emerald-700 font-bold">
-                    <CheckCircle2 className="w-3 h-3" /> Lettres (A-Z, a-z)
+                  <span className="flex items-center gap-1 text-[#0B3B60] font-bold">
+                    <CheckCircle2 className="w-3 h-3 text-[#38B6FF]" /> Lettres (A-Z, a-z)
                   </span>
-                  <span className="flex items-center gap-1 text-emerald-700 font-bold">
-                    <CheckCircle2 className="w-3 h-3" /> Chiffres (0-9)
+                  <span className="flex items-center gap-1 text-[#0B3B60] font-bold">
+                    <CheckCircle2 className="w-3 h-3 text-[#38B6FF]" /> Chiffres (0-9)
                   </span>
-                  <span className="flex items-center gap-1 text-emerald-700 font-bold">
-                    <CheckCircle2 className="w-3 h-3" /> Symboles spéciaux (!@#$)
+                  <span className="flex items-center gap-1 text-[#0B3B60] font-bold">
+                    <CheckCircle2 className="w-3 h-3 text-[#38B6FF]" /> Symboles spéciaux (!@#$)
                   </span>
                   <span className="text-slate-400 italic">| Vous pouvez l'éditer librement</span>
                 </div>
 
                 <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1.5 font-medium">
-                  <Send className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                  <Send className="w-3 h-3 text-[#38B6FF] flex-shrink-0" />
                   <span>Ce mot de passe sera enregistré en base de données et envoyé par email au porteur.</span>
                 </p>
               </div>
@@ -646,7 +646,7 @@ export const AdminPorteursTab: React.FC = () => {
                 <select
                   value={newCommuneId}
                   onChange={(e) => setNewCommuneId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold cursor-pointer"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-bold cursor-pointer"
                 >
                   {communes.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -663,7 +663,7 @@ export const AdminPorteursTab: React.FC = () => {
                   placeholder="Ex: Sanuya Énergie : Briquettes Solaires"
                   value={newInitiativeName}
                   onChange={(e) => setNewInitiativeName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-medium"
                 />
               </div>
 
@@ -678,7 +678,7 @@ export const AdminPorteursTab: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-xl bg-[#062326] text-emerald-300 font-black hover:bg-[#09363B] transition-all cursor-pointer shadow-md disabled:opacity-60 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-[#08233C] text-[#38B6FF] font-black hover:bg-[#0B3B60] transition-all cursor-pointer shadow-md disabled:opacity-60 flex items-center gap-2"
                 >
                   {submitting && <Loader className="w-4 h-4 animate-spin" />}
                   Enregistrer le compte
@@ -695,8 +695,8 @@ export const AdminPorteursTab: React.FC = () => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold">
-                  <Edit3 className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-[#EFF8FF] text-[#0B3B60] flex items-center justify-center font-bold">
+                  <Edit3 className="w-5 h-5 text-[#38B6FF]" />
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-900">Modifier le porteur</h3>
@@ -719,7 +719,7 @@ export const AdminPorteursTab: React.FC = () => {
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-medium"
                 />
               </div>
 
@@ -731,7 +731,7 @@ export const AdminPorteursTab: React.FC = () => {
                     required
                     value={editEmail}
                     onChange={(e) => setEditEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-medium"
                   />
                 </div>
                 <div>
@@ -740,7 +740,7 @@ export const AdminPorteursTab: React.FC = () => {
                     type="tel"
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-medium"
                   />
                 </div>
               </div>
@@ -750,7 +750,7 @@ export const AdminPorteursTab: React.FC = () => {
                 <select
                   value={editCommuneId}
                   onChange={(e) => setEditCommuneId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold cursor-pointer"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-bold cursor-pointer"
                 >
                   {communes.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -764,7 +764,7 @@ export const AdminPorteursTab: React.FC = () => {
                   type="text"
                   value={editInitiativeName}
                   onChange={(e) => setEditInitiativeName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 font-medium"
                 />
               </div>
 
@@ -779,7 +779,7 @@ export const AdminPorteursTab: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-xl bg-[#062326] text-emerald-300 font-black hover:bg-[#09363B] transition-all cursor-pointer shadow-md disabled:opacity-60 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-[#08233C] text-[#38B6FF] font-black hover:bg-[#0B3B60] transition-all cursor-pointer shadow-md disabled:opacity-60 flex items-center gap-2"
                 >
                   {submitting && <Loader className="w-4 h-4 animate-spin" />}
                   Sauvegarder les modifications
@@ -832,14 +832,14 @@ export const AdminPorteursTab: React.FC = () => {
       {/* Modal 4: Account Creation Success Recap */}
       {createdSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-emerald-200 text-left space-y-5 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-[#38B6FF]/40 text-left space-y-5 animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold flex-shrink-0 shadow-xs">
-                <ShieldCheck className="w-7 h-7 text-emerald-600" />
+              <div className="w-12 h-12 rounded-2xl bg-[#EFF8FF] text-[#0B3B60] flex items-center justify-center font-bold flex-shrink-0 shadow-xs">
+                <ShieldCheck className="w-7 h-7 text-[#38B6FF]" />
               </div>
               <div className="flex-1">
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[#38B6FF]/15 text-[#0B3B60]">
                   Enregistrement Base de Données
                 </span>
                 <h3 className="text-xl font-black text-slate-900 mt-1">
@@ -868,7 +868,7 @@ export const AdminPorteursTab: React.FC = () => {
               <div className="border-b border-slate-200 pb-2.5">
                 <div className="flex items-center justify-between mb-1 text-xs">
                   <span className="text-slate-500 font-bold flex items-center gap-1.5">
-                    <Key className="w-3.5 h-3.5 text-emerald-600" />
+                    <Key className="w-3.5 h-3.5 text-[#38B6FF]" />
                     Mot de passe temporaire :
                   </span>
                   <button
@@ -878,11 +878,11 @@ export const AdminPorteursTab: React.FC = () => {
                       setModalPasswordCopied(true);
                       setTimeout(() => setModalPasswordCopied(false), 2500);
                     }}
-                    className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-[11px] font-bold text-[#0B3B60] hover:text-[#38B6FF] bg-[#EFF8FF] hover:bg-slate-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
                   >
                     {modalPasswordCopied ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <Check className="w-3.5 h-3.5 text-[#38B6FF]" />
                         <span>Copié !</span>
                       </>
                     ) : (
@@ -893,7 +893,7 @@ export const AdminPorteursTab: React.FC = () => {
                     )}
                   </button>
                 </div>
-                <div className="p-2.5 bg-emerald-50/60 border border-emerald-300 rounded-xl font-mono text-sm text-emerald-900 font-bold text-center tracking-wider">
+                <div className="p-2.5 bg-[#EFF8FF]/60 border border-[#38B6FF]/40 rounded-xl font-mono text-sm text-[#08233C] font-bold text-center tracking-wider">
                   {createdSuccessModal.password}
                 </div>
               </div>
@@ -924,7 +924,7 @@ export const AdminPorteursTab: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setCreatedSuccessModal(null)}
-                className="w-full py-3 bg-[#062326] hover:bg-[#093539] text-white rounded-xl font-extrabold text-sm shadow-md transition-all cursor-pointer text-center"
+                className="w-full py-3 bg-[#08233C] hover:bg-[#0B3B60] text-white rounded-xl font-extrabold text-sm shadow-md transition-all cursor-pointer text-center"
               >
                 Compris & Fermer
               </button>

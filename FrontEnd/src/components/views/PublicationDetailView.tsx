@@ -13,15 +13,13 @@ import {
   ChevronRight, 
   Check, 
   AlertTriangle,
-  Building2,
   Sparkles,
-  ExternalLink,
-  ShieldCheck,
-  UserCheck,
-  User
+  Loader2
 } from 'lucide-react';
-import { motion } from 'motion/react';
 import { getPublicationSlides, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
+import { ArticleContent } from '../shared/ArticleContent';
+import { PublicationsController } from '../../controllers/publicationsController';
+import { Publication } from '../../models/publication.model';
 
 export const PublicationDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,26 +31,59 @@ export const PublicationDetailView: React.FC = () => {
     publications,
     communes, 
     setSelectedCommuneId, 
-    setActiveTab, 
     comments, 
     addComment,
     loadCommentsForPublication,
     currentUserRole 
   } = useApp();
 
-  const selectedPublication = (contextPublication && (!id || contextPublication.id === id))
-    ? contextPublication
-    : publications.find(p => p.id === id) || contextPublication;
-
+  const [fetchedPublication, setFetchedPublication] = useState<Publication | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [commentName, setCommentName] = useState('');
   const [commentMessage, setCommentMessage] = useState('');
   const [commentSuccess, setCommentSuccess] = useState(false);
+  const [commentError, setCommentError] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Détermination de la publication à afficher
+  const selectedPublication: Publication | null =
+    (contextPublication && (!id || contextPublication.id === id))
+      ? contextPublication
+      : (id ? publications.find(p => p.id === id) : null) || fetchedPublication || null;
+
+  // Récupération de secours depuis l'API si la publication n'est pas encore dans le contexte
   useEffect(() => {
+    if (!id) return;
+    const existsInList = publications.find(p => p.id === id);
+    if (!existsInList && !contextPublication) {
+      let isMounted = true;
+      setIsLoading(true);
+      PublicationsController.getById(id)
+        .then((data) => {
+          if (isMounted && data) {
+            setFetchedPublication(data);
+            setSelectedPublication(data);
+          }
+        })
+        .catch((err) => {
+          console.warn('Impossible de charger la publication par ID:', err);
+        })
+        .finally(() => {
+          if (isMounted) setIsLoading(false);
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [id, publications, contextPublication, setSelectedPublication]);
+
+  // Réinitialiser le slide et scroller en haut quand la publication change
+  useEffect(() => {
+    setActiveSlide(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [selectedPublication]);
+  }, [selectedPublication?.id]);
 
   // Charger les commentaires depuis la DB à l'ouverture de la publication
   useEffect(() => {
@@ -62,6 +93,25 @@ export const PublicationDetailView: React.FC = () => {
     }
   }, [selectedPublication?.id, id, loadCommentsForPublication]);
 
+  const handleBack = () => {
+    setSelectedPublication(null);
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/actualites');
+    }
+  };
+
+  if (isLoading && !selectedPublication) {
+    return (
+      <div className="w-full max-w-2xl mx-auto text-center py-24 bg-white rounded-3xl border border-slate-200 p-8 shadow-xs my-8 space-y-4">
+        <Loader2 className="w-10 h-10 text-[#38B6FF] animate-spin mx-auto" />
+        <h2 className="text-lg font-bold text-slate-800">Chargement de l'actualité...</h2>
+        <p className="text-xs text-slate-500">Veuillez patienter pendant la récupération des détails.</p>
+      </div>
+    );
+  }
+
   if (!selectedPublication) {
     return (
       <div className="w-full max-w-2xl mx-auto text-center py-20 bg-white rounded-3xl border border-slate-200 p-8 shadow-xs my-8 space-y-4">
@@ -70,7 +120,7 @@ export const PublicationDetailView: React.FC = () => {
         <p className="text-xs text-slate-500">L'actualité demandée n'existe pas ou a été déplacée.</p>
         <button
           onClick={() => navigate('/actualites')}
-          className="px-4 py-2 bg-[#08233C] text-white rounded-xl text-xs font-bold hover:bg-[#0B3B60] transition-colors inline-flex items-center gap-2"
+          className="px-4 py-2 bg-[#08233C] text-white rounded-xl text-xs font-bold hover:bg-[#0B3B60] transition-colors inline-flex items-center gap-2 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Voir toutes les actualités</span>
@@ -80,9 +130,9 @@ export const PublicationDetailView: React.FC = () => {
   }
 
   const commune = communes.find(c => c.id === selectedPublication.communeId);
-  const pubComments = comments.filter(c => c.publicationId === selectedPublication.id);
-
-  const [commentError, setCommentError] = useState('');
+  const pubComments = Array.isArray(comments)
+    ? comments.filter(c => c && c.publicationId === selectedPublication.id)
+    : [];
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +174,13 @@ export const PublicationDetailView: React.FC = () => {
   };
 
   const slides = getPublicationSlides(selectedPublication);
+  const safeActiveSlide = Math.min(activeSlide, Math.max(0, slides.length - 1));
+  const currentSlide = slides[safeActiveSlide] || slides[0] || { url: DEFAULT_PUBLICATION_COVERS.default, caption: '' };
+
+  const authorDisplayName =
+    selectedPublication.authorName ||
+    (selectedPublication as any).author ||
+    (selectedPublication.type === 'commune_news' ? 'Mairie de Bamako' : 'Équipe IMPACT SAHEL');
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 pb-16 animate-in fade-in duration-200">
@@ -131,14 +188,11 @@ export const PublicationDetailView: React.FC = () => {
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <button
           id="btn-back-to-news"
-          onClick={() => {
-            setSelectedPublication(null);
-            navigate('/actualites');
-          }}
+          onClick={handleBack}
           className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#08233C] font-bold text-xs sm:text-sm transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Retour aux actualités</span>
+          <span>Retour</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -174,9 +228,15 @@ export const PublicationDetailView: React.FC = () => {
             <span className={`text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
               selectedPublication.type === 'commune_news'
                 ? 'bg-[#08233C] text-[#FADB58]'
-                : 'bg-[#38B6FF]/20 text-[#0B3B60]'
+                : selectedPublication.type === 'activity'
+                  ? 'bg-amber-100 text-amber-900'
+                  : 'bg-[#38B6FF]/20 text-[#0B3B60]'
             }`}>
-              {selectedPublication.type === 'commune_news' ? '🏛️ Actualité Mairie Officielle' : '🚀 Avancement d’initiative'}
+              {selectedPublication.type === 'commune_news'
+                ? '🏛️ Actualité Mairie Officielle'
+                : selectedPublication.type === 'activity'
+                  ? '🎯 Activité Municipale / Citoyenne'
+                  : '🚀 Avancement d’initiative'}
             </span>
 
             {commune && (
@@ -195,7 +255,7 @@ export const PublicationDetailView: React.FC = () => {
 
             <span className="text-xs text-slate-400 flex items-center gap-1 ml-auto">
               <Calendar className="w-3.5 h-3.5" />
-              {selectedPublication.date}
+              {selectedPublication.date || 'Récemment'}
             </span>
           </div>
 
@@ -207,13 +267,13 @@ export const PublicationDetailView: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-700">Publié par :</span>
               <span className="font-bold text-[#08233C] bg-slate-100 px-2.5 py-0.5 rounded-lg">
-                {selectedPublication.author}
+                {authorDisplayName}
               </span>
             </div>
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
                 <Eye className="w-4 h-4 text-slate-400" />
-                {selectedPublication.viewsCount} consultations
+                {selectedPublication.viewsCount || 0} consultations
               </span>
               <span className="flex items-center gap-1">
                 <MessageSquare className="w-4 h-4 text-slate-400" />
@@ -239,17 +299,18 @@ export const PublicationDetailView: React.FC = () => {
             <div className="relative">
               <div className="relative h-72 sm:h-96 md:h-[480px] w-full overflow-hidden">
                 <img
-                  src={slides[activeSlide]?.url}
-                  alt={slides[activeSlide]?.caption || selectedPublication.title}
+                  src={currentSlide?.url}
+                  alt={currentSlide?.caption || selectedPublication.title}
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[selectedPublication.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
+                    (e.target as HTMLImageElement).src =
+                      DEFAULT_PUBLICATION_COVERS[selectedPublication.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
                   }}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                {slides[activeSlide]?.caption && (
+                {currentSlide?.caption && (
                   <div className="absolute bottom-4 left-4 right-4 text-white text-xs sm:text-sm font-medium bg-black/60 backdrop-blur-xs p-3 rounded-xl max-w-2xl">
-                    {slides[activeSlide]?.caption}
+                    {currentSlide.caption}
                   </div>
                 )}
               </div>
@@ -278,7 +339,7 @@ export const PublicationDetailView: React.FC = () => {
                         key={i}
                         onClick={() => setActiveSlide(i)}
                         className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
-                          activeSlide === i ? 'w-6 bg-[#FADB58]' : 'bg-white/60'
+                          safeActiveSlide === i ? 'w-6 bg-[#FADB58]' : 'bg-white/60'
                         }`}
                         aria-label={`Aller à la diapositive ${i + 1}`}
                       />
@@ -290,57 +351,31 @@ export const PublicationDetailView: React.FC = () => {
           )}
         </div>
 
-        {/* Audio Embed if available */}
-        {selectedPublication.format === 'audio' && (
-          <div className="p-6 bg-amber-50 border-b border-amber-100 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-extrabold text-amber-900 text-sm">Écouter la déclaration en bambara</h4>
-              <p className="text-xs text-amber-700">Enregistrement audio certifié par les services municipaux</p>
-            </div>
-            <audio controls className="h-9">
-              <source src={selectedPublication.audioUrl || '#'} type="audio/mpeg" />
-              Votre navigateur ne prend pas en charge l'élément audio.
-            </audio>
-          </div>
-        )}
-
         {/* Article Body Content */}
         <div className="p-6 sm:p-10 space-y-6">
-          <div className="prose prose-slate max-w-none text-slate-800 text-base leading-relaxed space-y-4 font-normal">
-            {selectedPublication.content.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="leading-relaxed">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          <ArticleContent content={selectedPublication.content} />
 
           {/* Social Share & Return footer banner */}
           <div className="pt-8 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
             <button
-              onClick={() => {
-                setSelectedPublication(null);
-                navigate('/actualites');
-              }}
+              onClick={handleBack}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#08233C] text-white font-extrabold text-xs sm:text-sm hover:bg-[#0B3B60] transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Revenir à la liste des actualités</span>
+              <span>Revenir aux actualités</span>
             </button>
 
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-500">Partager :</span>
               <button
                 onClick={handleShareWhatsApp}
-                className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors"
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors cursor-pointer"
               >
                 WhatsApp
               </button>
               <button
                 onClick={handleShareFacebook}
-                className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors"
+                className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 Facebook
               </button>

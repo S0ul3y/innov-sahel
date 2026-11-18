@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { FloatingActionButton } from './components/FloatingActionButton';
@@ -28,10 +28,10 @@ import { IdeaModal } from './components/modals/IdeaModal';
 import { ProblemModal } from './components/modals/ProblemModal';
 import { PublishModal } from './components/modals/PublishModal';
 
-import { motion, AnimatePresence } from 'motion/react';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
-/** Layout citoyen : Header + contenu animé + Footer + modals */
-const CitizenLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+/** Layout citoyen permanent : Header + contenu + Footer + modals */
+const CitizenLayout: React.FC = () => {
   const { activeModal } = useApp();
   const location = useLocation();
 
@@ -40,17 +40,11 @@ const CitizenLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        <ErrorBoundary key={location.pathname}>
+          <div key={location.pathname} className="animate-in fade-in duration-150">
+            <Outlet />
+          </div>
+        </ErrorBoundary>
       </main>
 
       <Footer />
@@ -65,13 +59,15 @@ const CitizenLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   );
 };
 
-/** Layout admin : pas de Header/Footer citoyen */
+/** Layout admin : espace administratif isolé */
 const AdminLayout: React.FC = () => {
   const { activeModal } = useApp();
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <AdminDashboardView />
+      <ErrorBoundary fallbackTitle="Une erreur est survenue dans le tableau de bord administrateur">
+        <AdminDashboardView />
+      </ErrorBoundary>
 
       {/* Modals éventuellement déclenchés depuis l'admin */}
       {activeModal === 'confirmation' && <ConfirmationModal />}
@@ -110,34 +106,36 @@ const AppRoutes: React.FC = () => {
       {/* Redirection racine */}
       <Route path="/" element={<Navigate to="/accueil" replace />} />
 
-      {/* Pages citoyennes publiques */}
-      <Route path="/accueil" element={<CitizenLayout><HomeView /></CitizenLayout>} />
-      <Route path="/connexion" element={<CitizenLayout><LoginView /></CitizenLayout>} />
-      <Route path="/a-propos" element={<CitizenLayout><AboutView /></CitizenLayout>} />
+      {/* Pages citoyennes publiques sous le CitizenLayout permanent */}
+      <Route element={<CitizenLayout />}>
+        <Route path="/accueil" element={<HomeView />} />
+        <Route path="/connexion" element={<LoginView />} />
+        <Route path="/a-propos" element={<AboutView />} />
 
-      {/* Ma Commune : avec ou sans ID de commune */}
-      <Route path="/ma-commune" element={<CitizenLayout><CommuneView /></CitizenLayout>} />
-      <Route path="/ma-commune/:id" element={<CitizenLayout><CommuneView /></CitizenLayout>} />
+        {/* Ma Commune : avec ou sans ID de commune */}
+        <Route path="/ma-commune" element={<CommuneView />} />
+        <Route path="/ma-commune/:id" element={<CommuneView />} />
 
-      {/* Initiatives : liste et détail */}
-      <Route path="/initiatives" element={<CitizenLayout><InitiativesView /></CitizenLayout>} />
-      <Route path="/initiatives/:id" element={<CitizenLayout><InitiativeDetailView /></CitizenLayout>} />
+        {/* Initiatives : liste et détail */}
+        <Route path="/initiatives" element={<InitiativesView />} />
+        <Route path="/initiatives/:id" element={<InitiativeDetailView />} />
 
-      {/* Actualités : liste et détail */}
-      <Route path="/actualites" element={<CitizenLayout><NewsView /></CitizenLayout>} />
-      <Route path="/actualites/:id" element={<CitizenLayout><PublicationDetailView /></CitizenLayout>} />
-      {/* Alias pour compatibilité */}
-      <Route path="/publications/:id" element={<CitizenLayout><PublicationDetailView /></CitizenLayout>} />
+        {/* Actualités : liste et détail */}
+        <Route path="/actualites" element={<NewsView />} />
+        <Route path="/actualites/:id" element={<PublicationDetailView />} />
+        {/* Alias pour compatibilité */}
+        <Route path="/publications/:id" element={<PublicationDetailView />} />
 
-      {/* Mon Espace Porteur d'initiative */}
-      <Route
-        path="/mon-espace"
-        element={
-          <PorteurGuard>
-            <CitizenLayout><DashboardView /></CitizenLayout>
-          </PorteurGuard>
-        }
-      />
+        {/* Mon Espace Porteur d'initiative */}
+        <Route
+          path="/mon-espace"
+          element={
+            <PorteurGuard>
+              <DashboardView />
+            </PorteurGuard>
+          }
+        />
+      </Route>
 
       {/* Espace Admin (isolé, sans layout citoyen) */}
       <Route

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { YoutubeEmbed } from '../shared/YoutubeEmbed';
+import { ArticleContent } from '../shared/ArticleContent';
 import { UploadsController } from '../../controllers/uploadsController';
 import { getPublicationSlides, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
@@ -206,9 +207,7 @@ export const PublicationDetailModal: React.FC = () => {
             </div>
 
             {/* Body text */}
-            <div className="whitespace-pre-wrap text-slate-800 leading-relaxed space-y-3 font-normal">
-              {selectedPublication.content}
-            </div>
+            <ArticleContent content={selectedPublication.content} />
 
             {/* Comments Space (Section 7.2) */}
             <div className="border-t border-slate-200 pt-5 space-y-4">

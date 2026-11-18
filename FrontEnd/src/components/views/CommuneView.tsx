@@ -166,7 +166,7 @@ export const CommuneView: React.FC = () => {
                         {romanNumeral}
                       </span>
                       {isSelected ? (
-                        <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                        <span className="w-5 h-5 rounded-full bg-[#38B6FF] text-white flex items-center justify-center">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                         </span>
                       ) : (
@@ -256,7 +256,7 @@ export const CommuneView: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {selectedCommune.services.map((service, i) => (
                 <div key={i} className="flex items-start gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-800">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-[#38B6FF] flex-shrink-0 mt-0.5" />
                   <span>{service}</span>
                 </div>
               ))}
