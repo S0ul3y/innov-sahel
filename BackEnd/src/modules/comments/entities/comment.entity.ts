@@ -45,6 +45,12 @@ export class CommentEntity {
   @Column({ type: 'text', nullable: true })
   replyText: string;
 
+  @Column({ nullable: true })
+  replyAuthorName: string;
+
+  @Column({ nullable: true })
+  replyDate: string;
+
   // Protection anti-abus : IP hashée (jamais stockée en clair — §10.2)
   @Column({ nullable: true, select: false })
   ipHash: string;

@@ -22,8 +22,8 @@ export class CommentsController {
     return apiClient.post<{ message: string }>(`/comments/${id}/report`);
   }
 
-  static async reply(id: string, replyText: string): Promise<Comment> {
-    return apiClient.post<Comment>(`/comments/${id}/reply`, { replyText });
+  static async reply(id: string, replyText: string, replyAuthorName?: string): Promise<Comment> {
+    return apiClient.post<Comment>(`/comments/${id}/reply`, { replyText, replyAuthorName });
   }
 
   static async delete(id: string): Promise<void> {

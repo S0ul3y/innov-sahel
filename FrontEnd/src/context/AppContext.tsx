@@ -109,6 +109,7 @@ interface AppContextType {
   updatePublication: (id: string, partial: Partial<Publication>) => Promise<void>;
   deletePublication: (id: string) => Promise<void>;
   addComment: (comment: Omit<Comment, 'id' | 'date' | 'reported'>) => Promise<void>;
+  replyComment: (id: string, replyText: string, replyAuthorName?: string) => Promise<void>;
   reportComment: (id: string) => Promise<void>;
   deleteComment: (id: string) => Promise<void>;
   updateInitiative: (id: string, partial: Partial<Initiative>) => Promise<void>;
@@ -452,8 +453,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Modal de confirmation bienveillante
     setConfirmationData({
-      title: data.type === 'idee' ? 'Merci pour votre idée !' : 'Signalement bien enregistré !',
-      message: "Votre message a bien été reçu et enregistré en base de données. Il est transmis confidentiellement à l'équipe IMPACT SAHEL et aux responsables communaux pour examen.",
+      title: data.type === 'idee'
+        ? '💡 Merci pour votre idée citoyenne !'
+        : '⚠️ Signalement bien enregistré et transmis !',
+      message: data.type === 'idee'
+        ? "Votre proposition d'idée a bien été reçue et enregistrée en base de données. Elle est transmise directement aux services municipaux et à l'équipe IMPACT SAHEL. Elle sera attentivement analysée et prise en compte dans les concertations locales. Merci pour votre participation citoyenne !"
+        : "Votre signalement a bien été transmis aux services techniques municipaux de votre commune. Une équipe a été notifiée pour constater la situation sur le terrain et programmer l'intervention nécessaire. Merci pour votre vigilance citoyenne !",
       type: data.type === 'idee' ? 'idea' : 'problem'
     });
   };
@@ -527,8 +532,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       authorName: commentData.authorName,
       authorRole: commentData.authorRole,
       message: commentData.message,
+      parentCommentId: commentData.parentCommentId,
     });
     setComments(prev => [...prev, { ...created, date: formattedDate }]);
+  };
+
+  const replyComment = async (id: string, replyText: string, replyAuthorName?: string) => {
+    const updated = await CommentsController.reply(id, replyText, replyAuthorName);
+    setComments(prev => prev.map(c => c.id === id ? { ...c, ...updated } : c));
   };
 
   const reportComment = async (id: string) => {
@@ -647,6 +658,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updatePublication,
         deletePublication,
         addComment,
+        replyComment,
         reportComment,
         deleteComment,
         updateInitiative,

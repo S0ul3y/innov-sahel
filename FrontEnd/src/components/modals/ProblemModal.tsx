@@ -41,37 +41,48 @@ export const ProblemModal: React.FC = () => {
   const [citizenName, setCitizenName] = useState<string>('');
   const [citizenPhone, setCitizenPhone] = useState<string>('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   if (activeModal !== 'problem') return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) {
       setError('Veuillez décrire le problème constaté pour que les services municipaux puissent intervenir.');
       return;
     }
 
-    addContribution({
-      type: 'signalement',
-      communeId,
-      category,
-      description: description.trim(),
-      photoUrl: photoUrl || undefined,
-      locationText: locationText.trim() || undefined,
-      gpsCoordinates,
-      citizenName: citizenName.trim() || undefined,
-      citizenPhone: citizenPhone.trim() || undefined
-    });
-
-    setActiveModal(null);
-    setDescription('');
-    setPhotoUrl('');
-    setLocationText('');
-    setGpsCoordinates(undefined);
-    setCitizenName('');
-    setCitizenPhone('');
+    setIsSubmitting(true);
     setError('');
+
+    try {
+      await addContribution({
+        type: 'signalement',
+        communeId,
+        category,
+        description: description.trim(),
+        photoUrl: photoUrl || undefined,
+        locationText: locationText.trim() || undefined,
+        gpsCoordinates,
+        citizenName: citizenName.trim() || undefined,
+        citizenPhone: citizenPhone.trim() || undefined
+      });
+
+      setActiveModal(null);
+      setDescription('');
+      setPhotoUrl('');
+      setLocationText('');
+      setGpsCoordinates(undefined);
+      setCitizenName('');
+      setCitizenPhone('');
+      setError('');
+    } catch (err: any) {
+      console.error('Erreur soumission signalement:', err);
+      setError(err?.message || 'Une erreur est survenue lors de la transmission de votre signalement. Veuillez réessayer.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,10 +336,20 @@ export const ProblemModal: React.FC = () => {
               <button
                 id="submit-problem-button"
                 type="submit"
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-extrabold text-sm hover:from-amber-600 hover:to-amber-700 transition-all shadow-md cursor-pointer"
+                disabled={isSubmitting}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-extrabold text-sm hover:from-amber-600 hover:to-amber-700 transition-all shadow-md cursor-pointer disabled:opacity-50"
               >
-                <Check className="w-4 h-4" />
-                <span>Transmettre le signalement</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin text-white" />
+                    <span>Transmission en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Transmettre le signalement</span>
+                  </>
+                )}
               </button>
             </div>
           </form>

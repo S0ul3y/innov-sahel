@@ -41,33 +41,44 @@ export const IdeaModal: React.FC = () => {
   const [citizenName, setCitizenName] = useState<string>('');
   const [citizenPhone, setCitizenPhone] = useState<string>('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   if (activeModal !== 'idea') return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) {
       setError('Veuillez décrire votre proposition d’idée avant d’envoyer.');
       return;
     }
 
-    addContribution({
-      type: 'idee',
-      communeId,
-      category,
-      description: description.trim(),
-      photoUrl: photoUrl || undefined,
-      citizenName: citizenName.trim() || undefined,
-      citizenPhone: citizenPhone.trim() || undefined
-    });
-
-    setActiveModal(null);
-    setDescription('');
-    setPhotoUrl('');
-    setCitizenName('');
-    setCitizenPhone('');
+    setIsSubmitting(true);
     setError('');
+
+    try {
+      await addContribution({
+        type: 'idee',
+        communeId,
+        category,
+        description: description.trim(),
+        photoUrl: photoUrl || undefined,
+        citizenName: citizenName.trim() || undefined,
+        citizenPhone: citizenPhone.trim() || undefined
+      });
+
+      setActiveModal(null);
+      setDescription('');
+      setPhotoUrl('');
+      setCitizenName('');
+      setCitizenPhone('');
+      setError('');
+    } catch (err: any) {
+      console.error('Erreur soumission idée:', err);
+      setError(err?.message || 'Une erreur est survenue lors de l\'envoi de votre idée. Veuillez réessayer.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,10 +283,20 @@ export const IdeaModal: React.FC = () => {
               <button
                 id="submit-idea-button"
                 type="submit"
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FADB58] text-[#08233C] font-extrabold text-sm hover:bg-[#ebd048] transition-all shadow-md cursor-pointer"
+                disabled={isSubmitting}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FADB58] text-[#08233C] font-extrabold text-sm hover:bg-[#ebd048] transition-all shadow-md cursor-pointer disabled:opacity-50"
               >
-                <Check className="w-4 h-4" />
-                <span>Envoyer mon idée</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin text-[#08233C]" />
+                    <span>Envoi en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Envoyer mon idée</span>
+                  </>
+                )}
               </button>
             </div>
           </form>

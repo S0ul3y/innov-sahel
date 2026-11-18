@@ -51,7 +51,7 @@ export class CommentsService {
 
     const comment = this.repo.create({
       ...dto,
-      authorRole: 'citoyen',
+      authorRole: dto.authorRole || 'citoyen',
       ipHash,
     });
 
@@ -69,6 +69,9 @@ export class CommentsService {
     const comment = await this.repo.findOne({ where: { id } });
     if (!comment) throw new NotFoundException('Commentaire introuvable.');
     comment.replyText = dto.replyText;
+    comment.replyAuthorName = dto.replyAuthorName || authorName || 'Administrateur IMPACT SAHEL';
+    const now = new Date();
+    comment.replyDate = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) + ' à ' + now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     return this.repo.save(comment);
   }
 

@@ -51,7 +51,7 @@ const CitizenLayout: React.FC = () => {
       <FloatingActionButton />
 
       {/* Modals citoyens */}
-      {activeModal === 'confirmation' && <ConfirmationModal />}
+      {(activeModal === 'confirmation' || !!confirmationData) && <ConfirmationModal />}
       {activeModal === 'idea' && <IdeaModal />}
       {activeModal === 'problem' && <ProblemModal />}
       {activeModal === 'publish' && <PublishModal />}
@@ -70,7 +70,7 @@ const AdminLayout: React.FC = () => {
       </ErrorBoundary>
 
       {/* Modals éventuellement déclenchés depuis l'admin */}
-      {activeModal === 'confirmation' && <ConfirmationModal />}
+      {(activeModal === 'confirmation' || !!confirmationData) && <ConfirmationModal />}
       {activeModal === 'idea' && <IdeaModal />}
       {activeModal === 'problem' && <ProblemModal />}
       {activeModal === 'publish' && <PublishModal />}

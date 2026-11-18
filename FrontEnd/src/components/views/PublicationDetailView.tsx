@@ -14,7 +14,12 @@ import {
   Check, 
   AlertTriangle,
   Sparkles,
-  Loader2
+  Loader2,
+  ShieldCheck,
+  CornerDownRight,
+  Reply,
+  CheckCircle2,
+  UserCheck
 } from 'lucide-react';
 import { getPublicationSlides, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 import { ArticleContent } from '../shared/ArticleContent';
@@ -33,18 +38,31 @@ export const PublicationDetailView: React.FC = () => {
     setSelectedCommuneId, 
     comments, 
     addComment,
+    replyComment,
     loadCommentsForPublication,
-    currentUserRole 
+    currentUserRole,
+    activeUser
   } = useApp();
 
   const [fetchedPublication, setFetchedPublication] = useState<Publication | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [commentName, setCommentName] = useState('');
+
+  // Formulaire de commentaire principal
+  const [commentName, setCommentName] = useState(
+    currentUserRole === 'admin' ? (activeUser?.name || 'Administrateur IMPACT SAHEL') : ''
+  );
   const [commentMessage, setCommentMessage] = useState('');
   const [commentSuccess, setCommentSuccess] = useState(false);
   const [commentError, setCommentError] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Réponse spécifique à un commentaire particulier
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
+  const [replyMessage, setReplyMessage] = useState('');
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+  const [replyError, setReplyError] = useState('');
+  const [replySuccessId, setReplySuccessId] = useState<string | null>(null);
 
   // Détermination de la publication à afficher
   const selectedPublication: Publication | null =
@@ -84,6 +102,13 @@ export const PublicationDetailView: React.FC = () => {
     setActiveSlide(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [selectedPublication?.id]);
+
+  // Pré-remplir le nom si le rôle d'administrateur change
+  useEffect(() => {
+    if (currentUserRole === 'admin' && !commentName) {
+      setCommentName(activeUser?.name || 'Administrateur IMPACT SAHEL');
+    }
+  }, [currentUserRole, activeUser, commentName]);
 
   // Charger les commentaires depuis la DB à l'ouverture de la publication
   useEffect(() => {
@@ -140,19 +165,45 @@ export const PublicationDetailView: React.FC = () => {
     setCommentError('');
 
     try {
+      const authorRoleToUse = currentUserRole === 'admin' ? 'admin' : currentUserRole === 'porteur' ? 'porteur' : 'citoyen';
+      const defaultName = currentUserRole === 'admin' ? (activeUser?.name || 'Administrateur IMPACT SAHEL') : 'Citoyen engagé';
+
       await addComment({
         publicationId: selectedPublication.id,
-        authorName: commentName.trim() || 'Citoyen engagé',
-        authorRole: currentUserRole === 'admin' ? 'admin' : currentUserRole === 'porteur' ? 'porteur' : 'citoyen',
+        authorName: commentName.trim() || defaultName,
+        authorRole: authorRoleToUse,
         message: commentMessage.trim()
       });
 
       setCommentMessage('');
-      setCommentName('');
+      if (currentUserRole !== 'admin') {
+        setCommentName('');
+      }
       setCommentSuccess(true);
-      setTimeout(() => setCommentSuccess(false), 3000);
+      setTimeout(() => setCommentSuccess(false), 3500);
     } catch (err: any) {
       setCommentError(err?.message || 'Erreur lors de l\'envoi du commentaire. Vérifiez votre connexion.');
+    }
+  };
+
+  // Répondre spécifiquement à un commentaire citoyen
+  const handleSendReply = async (commentId: string) => {
+    if (!replyMessage.trim()) return;
+    setReplyError('');
+    setIsSubmittingReply(true);
+
+    try {
+      const adminName = activeUser?.name || 'Équipe municipale & IMPACT SAHEL';
+      await replyComment(commentId, replyMessage.trim(), adminName);
+      
+      setReplyMessage('');
+      setReplyingToId(null);
+      setReplySuccessId(commentId);
+      setTimeout(() => setReplySuccessId(null), 3500);
+    } catch (err: any) {
+      setReplyError(err?.message || 'Impossible d\'enregistrer votre réponse.');
+    } finally {
+      setIsSubmittingReply(false);
     }
   };
 
@@ -393,10 +444,10 @@ export const PublicationDetailView: React.FC = () => {
             </div>
             <div>
               <h2 className="text-lg font-black text-[#08233C]">
-                Commentaires & réactions des citoyens ({pubComments.length})
+                Commentaires & échanges avec la Mairie ({pubComments.length})
               </h2>
               <p className="text-xs text-slate-500">
-                Espace citoyen modéré conformément à la charte d'engagement
+                Espace citoyen transparent : vos messages sont lus et répondus par l'équipe municipale.
               </p>
             </div>
           </div>
@@ -407,7 +458,7 @@ export const PublicationDetailView: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label htmlFor="pub-comment-author" className="block text-xs font-bold text-slate-600 mb-1">
-                Votre nom ou pseudonyme :
+                Votre nom ou statut :
               </label>
               <input
                 id="pub-comment-author"
@@ -420,22 +471,44 @@ export const PublicationDetailView: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1">
-                Votre statut actuel :
+                Profil d'intervention :
               </label>
-              <div className="px-3 py-2 bg-slate-200/70 border border-slate-300 rounded-xl text-xs font-bold text-slate-700">
-                {currentUserRole === 'admin' ? '🛡️ Administrateur IMPACT SAHEL' : currentUserRole === 'porteur' ? '👩🏾 Porteur d’initiative' : '👤 Citoyen'}
+              <div className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center gap-2 ${
+                currentUserRole === 'admin'
+                  ? 'bg-[#08233C] text-[#FADB58] border-[#08233C]'
+                  : currentUserRole === 'porteur'
+                    ? 'bg-blue-100 text-blue-900 border-blue-200'
+                    : 'bg-slate-200/70 border-slate-300 text-slate-700'
+              }`}>
+                {currentUserRole === 'admin' ? (
+                  <>
+                    <ShieldCheck className="w-4 h-4 text-[#38B6FF]" />
+                    <span>🛡️ Réponse officielle Administrateur / Mairie</span>
+                  </>
+                ) : currentUserRole === 'porteur' ? (
+                  <>
+                    <UserCheck className="w-4 h-4 text-blue-600" />
+                    <span>👩🏾 Porteur d’initiative</span>
+                  </>
+                ) : (
+                  <span>👤 Citoyen de Bamako</span>
+                )}
               </div>
             </div>
           </div>
 
           <div>
             <label htmlFor="pub-comment-text" className="block text-xs font-bold text-slate-600 mb-1">
-              Votre commentaire ou question :
+              {currentUserRole === 'admin' ? 'Votre message ou réponse officielle :' : 'Votre question, avis ou proposition :'}
             </label>
             <textarea
               id="pub-comment-text"
               rows={3}
-              placeholder="Partagez votre avis, vos questions ou vos encouragements..."
+              placeholder={
+                currentUserRole === 'admin'
+                  ? "Rédigez une réponse officielle de la Mairie ou de l'équipe IMPACT SAHEL à l'attention des citoyens..."
+                  : "Partagez votre avis, vos questions aux services municipaux ou vos encouragements..."
+              }
               value={commentMessage}
               onChange={(e) => setCommentMessage(e.target.value)}
               className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-[#08233C] focus:outline-none focus:ring-2 focus:ring-[#38B6FF]"
@@ -445,21 +518,23 @@ export const PublicationDetailView: React.FC = () => {
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-[11px] text-slate-500">
-              Les propos haineux ou diffamatoires sont systématiquement modérés.
+              {currentUserRole === 'admin'
+                ? "Ce message apparaîtra avec le badge officiel de la Mairie."
+                : "Les services municipaux sont notifiés de vos contributions."}
             </span>
             <button
               type="submit"
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#08233C] text-white font-extrabold text-xs hover:bg-[#0B3B60] transition-colors cursor-pointer"
             >
               <Send className="w-3.5 h-3.5 text-[#FADB58]" />
-              <span>Publier</span>
+              <span>{currentUserRole === 'admin' ? 'Publier la réponse officielle' : 'Publier mon commentaire'}</span>
             </button>
           </div>
 
           {commentSuccess && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-600" />
-              <span>Votre commentaire a été publié avec succès ! Merci de votre participation.</span>
+              <span>Votre commentaire a été publié avec succès et est visible de tous.</span>
             </div>
           )}
           {commentError && (
@@ -471,39 +546,160 @@ export const PublicationDetailView: React.FC = () => {
         </form>
 
         {/* Comments List */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {pubComments.length === 0 ? (
             <div className="text-center py-8 text-slate-400 text-xs">
-              Aucun commentaire pour le moment. Soyez le premier à réagir !
+              Aucun commentaire pour le moment. Soyez le premier à poser une question ou réagir !
             </div>
           ) : (
-            pubComments.map((comm) => (
-              <div
-                key={comm.id}
-                className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-xs text-[#08233C]">
-                      {comm.authorName}
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      comm.authorRole === 'admin'
-                        ? 'bg-amber-100 text-amber-800'
-                        : comm.authorRole === 'porteur'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-slate-200 text-slate-700'
-                    }`}>
-                      {comm.authorRole === 'admin' ? 'Équipe IMPACT SAHEL' : comm.authorRole === 'porteur' ? 'Porteur d’initiative' : 'Citoyen'}
-                    </span>
+            pubComments.map((comm) => {
+              const isAdmin = comm.authorRole === 'admin';
+              const isReplyingThis = replyingToId === comm.id;
+              const hasReply = !!comm.replyText;
+
+              return (
+                <div
+                  key={comm.id}
+                  className={`rounded-2xl p-4 sm:p-5 border transition-all space-y-3 ${
+                    isAdmin
+                      ? 'bg-gradient-to-r from-sky-50/80 via-white to-sky-50/40 border-2 border-[#38B6FF] shadow-xs'
+                      : 'bg-slate-50/80 border-slate-200'
+                  }`}
+                >
+                  {/* Comment Author Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-black text-xs text-[#08233C]">
+                        {comm.authorName}
+                      </span>
+
+                      {/* Rôle & Badge Officiel */}
+                      {isAdmin ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#08233C] text-[#FADB58] flex items-center gap-1 shadow-2xs border border-[#38B6FF]/30">
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#38B6FF]" />
+                          <span>Réponse officielle de la Mairie / IMPACT SAHEL</span>
+                        </span>
+                      ) : comm.authorRole === 'porteur' ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                          Porteur d’initiative
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200 text-slate-700">
+                          Citoyen
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-slate-400 font-medium">{comm.date}</span>
                   </div>
-                  <span className="text-[11px] text-slate-400">{comm.date}</span>
+
+                  {/* Comment Message Body */}
+                  <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal">
+                    {comm.message}
+                  </p>
+
+                  {/* Réponse Officielle imbriquée (si existante) */}
+                  {hasReply && (
+                    <div className="mt-3 ml-2 sm:ml-5 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#EFF8FF] to-white border-2 border-[#38B6FF]/40 space-y-2 shadow-2xs">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 text-xs font-black text-[#08233C]">
+                          <ShieldCheck className="w-4 h-4 text-[#38B6FF] flex-shrink-0" />
+                          <span>Réponse officielle : {comm.replyAuthorName || "Équipe municipale"}</span>
+                        </div>
+                        {comm.replyDate && (
+                          <span className="text-[10px] text-slate-500 font-semibold">{comm.replyDate}</span>
+                        )}
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium pl-1">
+                        {comm.replyText}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Message de succès après réponse */}
+                  {replySuccessId === comm.id && (
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Votre réponse officielle a été transmise et est désormais visible sous ce commentaire !</span>
+                    </div>
+                  )}
+
+                  {/* Barre d'action : bouton Répondre */}
+                  <div className="pt-1 flex items-center justify-between border-t border-slate-100 text-xs">
+                    <span className="text-[11px] text-slate-400">
+                      {hasReply ? "✓ Ce citoyen a reçu une réponse officielle." : "Ce commentaire attend une réaction."}
+                    </span>
+
+                    <button
+                      onClick={() => {
+                        setReplyingToId(isReplyingThis ? null : comm.id);
+                        setReplyMessage('');
+                        setReplyError('');
+                      }}
+                      className="inline-flex items-center gap-1 text-[#08233C] hover:text-[#38B6FF] font-bold transition-colors cursor-pointer py-1 px-2.5 rounded-lg hover:bg-slate-100"
+                    >
+                      <Reply className="w-3.5 h-3.5 text-[#38B6FF]" />
+                      <span>{isReplyingThis ? 'Fermer' : 'Répondre à ce citoyen'}</span>
+                    </button>
+                  </div>
+
+                  {/* Formulaire de réponse en ligne */}
+                  {isReplyingThis && (
+                    <div className="mt-3 ml-2 sm:ml-5 p-4 bg-white rounded-2xl border-2 border-[#38B6FF] shadow-sm space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="flex items-center gap-2 text-xs font-black text-[#08233C]">
+                        <CornerDownRight className="w-4 h-4 text-[#38B6FF]" />
+                        <span>
+                          {currentUserRole === 'admin'
+                            ? `Répondre officiellement à ${comm.authorName} au nom de la Mairie :`
+                            : `Répondre à ${comm.authorName} :`}
+                        </span>
+                      </div>
+
+                      <textarea
+                        rows={2}
+                        value={replyMessage}
+                        onChange={(e) => setReplyMessage(e.target.value)}
+                        placeholder={
+                          currentUserRole === 'admin'
+                            ? "Rédigez la réponse officielle de la Mairie / IMPACT SAHEL pour apporter une solution ou clarification..."
+                            : "Votre réponse à ce citoyen..."
+                        }
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-[#08233C] focus:outline-none focus:ring-2 focus:ring-[#38B6FF]"
+                        autoFocus
+                      />
+
+                      {replyError && (
+                        <div className="p-2 bg-red-50 text-red-700 text-xs rounded-lg font-medium">
+                          {replyError}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => { setReplyingToId(null); setReplyMessage(''); }}
+                          className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-100 cursor-pointer"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSendReply(comm.id)}
+                          disabled={!replyMessage.trim() || isSubmittingReply}
+                          className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#08233C] text-white text-xs font-extrabold hover:bg-[#0B3B60] transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          {isSubmittingReply ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FADB58]" />
+                          ) : (
+                            <Send className="w-3.5 h-3.5 text-[#FADB58]" />
+                          )}
+                          <span>Envoyer la réponse</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-slate-700 leading-relaxed font-normal">
-                  {comm.message}
-                </p>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </section>

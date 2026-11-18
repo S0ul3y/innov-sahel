@@ -19,6 +19,10 @@ export class CreateCommentDto {
   @IsOptional() @IsString()
   authorRole?: 'citoyen' | 'porteur' | 'admin';
 
+  @ApiProperty({ required: false, example: 'uuid-parent-comment' })
+  @IsOptional() @IsString()
+  parentCommentId?: string;
+
   @ApiProperty({ example: 'Très belle initiative, bravo !' })
   @IsString()
   @MinLength(2, { message: 'Le commentaire est trop court.' })
@@ -29,6 +33,10 @@ export class CreateCommentDto {
 export class ReplyCommentDto {
   @ApiProperty({ example: 'Merci pour votre commentaire !' })
   @IsString()
-  @MinLength(1) @MaxLength(500)
+  @MinLength(1) @MaxLength(1000)
   replyText: string;
+
+  @ApiProperty({ required: false, example: 'Aminata Traoré (Mairie)' })
+  @IsOptional() @IsString()
+  replyAuthorName?: string;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Publication, PublicationType, Comment } from '../../types';
 import { 
@@ -18,11 +18,16 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   ShieldAlert, 
+  ShieldCheck,
   Share2,
   Calendar,
   Layers,
   Video,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Send,
+  Reply,
+  CornerDownRight,
+  Loader2
 } from 'lucide-react';
 import { ImageUpload } from '../shared/ImageUpload';
 import { YoutubeEmbed } from '../shared/YoutubeEmbed';
@@ -38,6 +43,9 @@ export const AdminPublicationsTab: React.FC = () => {
     updatePublication, 
     deletePublication, 
     deleteComment,
+    replyComment,
+    loadCommentsForPublication,
+    addComment,
     activeUser 
   } = useApp();
 
@@ -52,6 +60,16 @@ export const AdminPublicationsTab: React.FC = () => {
   const [publicationToDelete, setPublicationToDelete] = useState<Publication | null>(null);
   const [moderationPublication, setModerationPublication] = useState<Publication | null>(null);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // Admin reply states
+  const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
+  const [adminReplyMessage, setAdminReplyMessage] = useState('');
+  const [isSubmittingAdminReply, setIsSubmittingAdminReply] = useState(false);
+  const [adminReplyError, setAdminReplyError] = useState('');
+  const [adminReplySuccessId, setAdminReplySuccessId] = useState<string | null>(null);
+  // New comment from admin
+  const [adminNewComment, setAdminNewComment] = useState('');
+  const [isSubmittingAdminComment, setIsSubmittingAdminComment] = useState(false);
 
   // Create form state
   const [newType, setNewType] = useState<PublicationType>('commune_news');
@@ -198,6 +216,60 @@ export const AdminPublicationsTab: React.FC = () => {
   const activePublicationComments = moderationPublication 
     ? comments.filter(c => c.publicationId === moderationPublication.id)
     : [];
+
+  // Charger les commentaires depuis l'API quand on ouvre la modération
+  useEffect(() => {
+    if (moderationPublication) {
+      loadCommentsForPublication(moderationPublication.id);
+      // Reset reply states
+      setReplyingToCommentId(null);
+      setAdminReplyMessage('');
+      setAdminReplyError('');
+      setAdminReplySuccessId(null);
+      setAdminNewComment('');
+    }
+  }, [moderationPublication?.id]);
+
+  // Réponse officielle admin à un commentaire citoyen
+  const handleAdminReply = async (commentId: string) => {
+    if (!adminReplyMessage.trim()) return;
+    setIsSubmittingAdminReply(true);
+    setAdminReplyError('');
+    try {
+      const adminName = activeUser?.name || 'Équipe municipale IMPACT SAHEL';
+      await replyComment(commentId, adminReplyMessage.trim(), adminName);
+      setAdminReplyMessage('');
+      setReplyingToCommentId(null);
+      setAdminReplySuccessId(commentId);
+      setSuccessBanner('Votre réponse officielle a été transmise avec succès !');
+      setTimeout(() => { setAdminReplySuccessId(null); setSuccessBanner(null); }, 4000);
+    } catch (err: any) {
+      setAdminReplyError(err?.message || "Impossible d'enregistrer la réponse.");
+    } finally {
+      setIsSubmittingAdminReply(false);
+    }
+  };
+
+  // Poster un commentaire général en tant qu'admin
+  const handleAdminPostComment = async () => {
+    if (!adminNewComment.trim() || !moderationPublication) return;
+    setIsSubmittingAdminComment(true);
+    try {
+      await addComment({
+        publicationId: moderationPublication.id,
+        authorName: activeUser?.name || 'Équipe municipale',
+        authorRole: 'admin',
+        message: adminNewComment.trim(),
+      });
+      setAdminNewComment('');
+      setSuccessBanner('Votre commentaire officiel a été publié.');
+      setTimeout(() => setSuccessBanner(null), 3500);
+    } catch (err: any) {
+      setAdminReplyError(err?.message || "Impossible de poster le commentaire.");
+    } finally {
+      setIsSubmittingAdminComment(false);
+    }
+  };
 
   const getTypeLabel = (type: PublicationType) => {
     switch(type) {
@@ -992,10 +1064,10 @@ export const AdminPublicationsTab: React.FC = () => {
         </div>
       )}
 
-      {/* Modal 3: Moderation des Commentaires Citoyens */}
+      {/* Modal 3: Moderation & Réponses Officielles aux Commentaires */}
       {moderationPublication && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-2xl bg-[#FADB58] text-[#08233C] flex items-center justify-center font-bold">
@@ -1003,7 +1075,7 @@ export const AdminPublicationsTab: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-900">
-                    Modération des Commentaires
+                    Commentaires & Réponses Officielles
                   </h3>
                   <span className="text-xs text-slate-500 truncate max-w-xs sm:max-w-md block">
                     {moderationPublication.title}
@@ -1029,64 +1101,201 @@ export const AdminPublicationsTab: React.FC = () => {
                 </span>
               </div>
               <p className="text-slate-600 line-clamp-2">
-                {moderationPublication.summary}
+                {moderationPublication.metaDescription}
               </p>
             </div>
+
+            {/* Formulaire pour poster un commentaire admin général */}
+            <div className="mb-6 p-4 bg-[#EFF8FF] rounded-2xl border border-[#38B6FF]/30 space-y-3">
+              <div className="flex items-center gap-2 text-xs">
+                <ShieldCheck className="w-4 h-4 text-[#38B6FF]" />
+                <span className="font-black text-[#0B3B60]">Poster un commentaire officiel</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#38B6FF]/15 text-[#0B3B60] font-bold">Admin</span>
+              </div>
+              <div className="flex gap-2">
+                <textarea
+                  rows={2}
+                  placeholder="Rédigez un commentaire officiel visible par tous les citoyens..."
+                  value={adminNewComment}
+                  onChange={(e) => setAdminNewComment(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-white border border-[#38B6FF]/30 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 resize-none"
+                />
+                <button
+                  onClick={handleAdminPostComment}
+                  disabled={isSubmittingAdminComment || !adminNewComment.trim()}
+                  className="px-4 py-2 rounded-xl bg-[#38B6FF] hover:bg-[#0B3B60] text-white font-black text-xs transition-all cursor-pointer self-end flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isSubmittingAdminComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  <span>Publier</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Error banner */}
+            {adminReplyError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700 flex items-center justify-between">
+                <span>{adminReplyError}</span>
+                <button onClick={() => setAdminReplyError('')} className="text-red-500 hover:text-red-700 cursor-pointer">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Comments list */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-slate-900">
-                  Commentaires déposés par les citoyens ({activePublicationComments.length})
+                  Tous les commentaires ({activePublicationComments.length})
                 </span>
                 <span className="text-[11px] text-slate-500">
-                  Supprimez tout contenu injurieux, diffamatoire ou non conforme.
+                  Modérez, répondez ou supprimez les commentaires.
                 </span>
               </div>
 
               {activePublicationComments.length === 0 ? (
                 <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-500 text-xs">
-                  Aucun commentaire citoyen n'a encore été déposé sur cette publication.
+                  Aucun commentaire n'a encore été déposé sur cette publication.
                 </div>
               ) : (
-                activePublicationComments.map(c => (
-                  <div
-                    key={c.id}
-                    className={`p-4 rounded-2xl border transition-all text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      c.reported 
-                        ? 'bg-red-50/70 border-red-200 ring-1 ring-red-300' 
-                        : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-slate-900">{c.author}</span>
-                        <span className="text-[10px] text-slate-400">{c.date}</span>
-                        {c.reported && (
-                          <span className="px-2 py-0.2 rounded-full text-[9px] font-black bg-red-600 text-white uppercase tracking-wider flex items-center gap-1">
-                            <AlertTriangle className="w-2.5 h-2.5" />
-                            <span>Signalé par un citoyen</span>
-                          </span>
+                activePublicationComments.map(c => {
+                  const isAdmin = c.authorRole === 'admin' || c.authorRole === 'porteur';
+                  return (
+                    <div
+                      key={c.id}
+                      className={`rounded-2xl border transition-all text-xs overflow-hidden ${
+                        c.reported 
+                          ? 'bg-red-50/70 border-red-200 ring-1 ring-red-300'
+                          : isAdmin
+                          ? 'bg-[#EFF8FF] border-[#38B6FF]/30'
+                          : 'bg-white border-slate-200'
+                      }`}
+                    >
+                      <div className="p-4 space-y-2">
+                        {/* Comment header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-black text-slate-900">{c.authorName}</span>
+                            <span className="text-[10px] text-slate-400">{c.date}</span>
+                            {isAdmin && (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-[#38B6FF]/15 text-[#0B3B60] uppercase tracking-wider flex items-center gap-1">
+                                <ShieldCheck className="w-2.5 h-2.5" />
+                                <span>Réponse officielle</span>
+                              </span>
+                            )}
+                            {c.reported && (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-red-600 text-white uppercase tracking-wider flex items-center gap-1">
+                                <AlertTriangle className="w-2.5 h-2.5" />
+                                <span>Signalé</span>
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {/* Bouton répondre (seulement pour les commentaires citoyens) */}
+                            {!isAdmin && !c.replyText && (
+                              <button
+                                onClick={() => {
+                                  setReplyingToCommentId(replyingToCommentId === c.id ? null : c.id);
+                                  setAdminReplyMessage('');
+                                  setAdminReplyError('');
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-[#38B6FF]/10 hover:bg-[#38B6FF]/20 text-[#0B3B60] font-bold text-[10px] transition-colors cursor-pointer flex items-center gap-1"
+                                title="Répondre officiellement à ce citoyen"
+                              >
+                                <Reply className="w-3 h-3" />
+                                <span>Répondre</span>
+                              </button>
+                            )}
+                            {/* Bouton supprimer */}
+                            <button
+                              onClick={() => {
+                                deleteComment(c.id);
+                                setSuccessBanner(`Le commentaire de ${c.authorName} a été supprimé.`);
+                                setTimeout(() => setSuccessBanner(null), 3000);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white font-bold text-[10px] transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Supprimer</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Comment body */}
+                        <p className="text-slate-700 leading-relaxed font-medium">
+                          "{c.message}"
+                        </p>
+
+                        {/* Existing official reply (already saved) */}
+                        {c.replyText && (
+                          <div className="mt-2 ml-4 p-3 bg-teal-50 border border-teal-200 rounded-xl space-y-1">
+                            <div className="flex items-center gap-2">
+                              <CornerDownRight className="w-3 h-3 text-teal-600" />
+                              <ShieldCheck className="w-3 h-3 text-teal-600" />
+                              <span className="font-black text-teal-800 text-[10px]">
+                                {c.replyAuthorName || 'Équipe municipale'}
+                              </span>
+                              {c.replyDate && (
+                                <span className="text-[9px] text-teal-500">{c.replyDate}</span>
+                              )}
+                            </div>
+                            <p className="text-teal-800 text-xs leading-relaxed font-medium">
+                              {c.replyText}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Reply success indicator */}
+                        {adminReplySuccessId === c.id && (
+                          <div className="mt-2 ml-4 p-2 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-700 text-[10px] font-bold">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Réponse officielle enregistrée avec succès !</span>
+                          </div>
+                        )}
+
+                        {/* Inline reply form */}
+                        {replyingToCommentId === c.id && (
+                          <div className="mt-2 ml-4 p-3 bg-[#EFF8FF] border border-[#38B6FF]/30 rounded-xl space-y-2">
+                            <div className="flex items-center gap-2 text-[10px]">
+                              <CornerDownRight className="w-3 h-3 text-[#38B6FF]" />
+                              <span className="font-black text-[#0B3B60]">
+                                Répondre à {c.authorName} en tant que {activeUser?.name || 'Admin'}
+                              </span>
+                            </div>
+                            <textarea
+                              rows={2}
+                              autoFocus
+                              placeholder={`Répondez officiellement au commentaire de ${c.authorName}...`}
+                              value={adminReplyMessage}
+                              onChange={(e) => setAdminReplyMessage(e.target.value)}
+                              className="w-full px-3 py-2 bg-white border border-[#38B6FF]/30 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#38B6FF]/50 resize-none"
+                            />
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => { setReplyingToCommentId(null); setAdminReplyMessage(''); }}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
+                              >
+                                Annuler
+                              </button>
+                              <button
+                                onClick={() => handleAdminReply(c.id)}
+                                disabled={isSubmittingAdminReply || !adminReplyMessage.trim()}
+                                className="px-4 py-1.5 rounded-lg bg-[#38B6FF] hover:bg-[#0B3B60] text-white font-black text-xs transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                              >
+                                {isSubmittingAdminReply ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Send className="w-3 h-3" />
+                                )}
+                                <span>Envoyer la réponse</span>
+                              </button>
+                            </div>
+                          </div>
                         )}
                       </div>
-                      <p className="text-slate-700 leading-relaxed font-medium">
-                        "{c.text}"
-                      </p>
                     </div>
-
-                    <button
-                      onClick={() => {
-                        deleteComment(c.id);
-                        setSuccessBanner(`Le commentaire de ${c.author} a été supprimé.`);
-                        setTimeout(() => setSuccessBanner(null), 3000);
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-red-100 hover:bg-red-600 text-red-700 hover:text-white font-bold text-xs transition-colors cursor-pointer flex items-center gap-1.5 flex-shrink-0"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Supprimer</span>
-                    </button>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 
@@ -1095,7 +1304,7 @@ export const AdminPublicationsTab: React.FC = () => {
                 onClick={() => setModerationPublication(null)}
                 className="px-5 py-2.5 rounded-xl bg-[#08233C] text-[#38B6FF] font-black text-xs hover:bg-[#0B3B60] transition-colors cursor-pointer"
               >
-                Fermer la modération
+                Fermer
               </button>
             </div>
           </div>
