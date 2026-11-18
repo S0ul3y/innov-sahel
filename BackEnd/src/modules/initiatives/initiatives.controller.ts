@@ -68,6 +68,15 @@ export class InitiativesController {
     return this.svc.toggleVisibility(id);
   }
 
+  @Patch(':id/pin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Épingler / désépingler une initiative [ADMIN]' })
+  togglePinned(@Param('id') id: string) {
+    return this.svc.togglePinned(id);
+  }
+
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

@@ -36,6 +36,10 @@ export class InitiativesController {
     return apiClient.patch<Initiative>(`/initiatives/${id}/visibility`, { isVisible });
   }
 
+  static async togglePin(id: string): Promise<Initiative> {
+    return apiClient.patch<Initiative>(`/initiatives/${id}/pin`, {});
+  }
+
   static async delete(id: string): Promise<void> {
     return apiClient.delete<void>(`/initiatives/${id}`);
   }

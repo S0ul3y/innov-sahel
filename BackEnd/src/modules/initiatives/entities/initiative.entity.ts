@@ -78,6 +78,10 @@ export class InitiativeEntity {
   @Column({ default: true })
   isVisible: boolean;
 
+  // Initiative épinglée en haut de liste
+  @Column({ default: false })
+  isPinned: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

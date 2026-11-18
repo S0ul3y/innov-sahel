@@ -21,6 +21,7 @@ export interface Initiative {
   viewsCount: number;
   videoUrl?: string;
   isVisible?: boolean;
+  isPinned?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -41,6 +42,7 @@ export interface CreateInitiativeDto {
   coverImage?: string;
   gallery?: Array<{ url: string; caption?: string }>;
   videoUrl?: string;
+  isPinned?: boolean;
 }
 
 export type UpdateInitiativeDto = Partial<CreateInitiativeDto>;

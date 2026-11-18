@@ -113,6 +113,7 @@ interface AppContextType {
   reportComment: (id: string) => Promise<void>;
   deleteComment: (id: string) => Promise<void>;
   updateInitiative: (id: string, partial: Partial<Initiative>) => Promise<void>;
+  togglePinInitiative: (id: string) => Promise<void>;
   createUserAccount: (account: Omit<UserAccount, 'id'> & { temporaryPassword?: string }) => Promise<void>;
   updateUserAccount: (id: string, partial: Partial<UserAccount>) => Promise<void>;
   deleteUserAccount: (id: string) => Promise<void>;
@@ -558,6 +559,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setInitiatives(prev => prev.map(init => init.id === id ? { ...init, ...partial } : init));
   };
 
+  const togglePinInitiative = async (id: string) => {
+    const updated = await InitiativesController.togglePin(id);
+    setInitiatives(prev => {
+      const next = prev.map(init => init.id === id ? { ...init, isPinned: updated.isPinned } : init);
+      // Trier : épinglées d'abord, puis par createdAt DESC
+      return [...next].sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return (new Date(b.createdAt || 0).getTime()) - (new Date(a.createdAt || 0).getTime());
+      });
+    });
+  };
+
   // ─── Utilisateurs porteurs ────────────────────────────────────────────────
   const createUserAccount = async (account: Omit<UserAccount, 'id'> & { temporaryPassword?: string }) => {
     const tempPassword = account.temporaryPassword || generateSecurePassword();
@@ -662,6 +676,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         reportComment,
         deleteComment,
         updateInitiative,
+        togglePinInitiative,
         createUserAccount,
         updateUserAccount,
         deleteUserAccount,

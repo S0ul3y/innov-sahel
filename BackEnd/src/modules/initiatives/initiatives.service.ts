@@ -19,7 +19,7 @@ export class InitiativesService {
   async findAll(communeId?: string): Promise<InitiativeEntity[]> {
     const where: any = { isVisible: true };
     if (communeId) where.communeId = communeId;
-    return this.repo.find({ where, order: { createdAt: 'DESC' } });
+    return this.repo.find({ where, order: { isPinned: 'DESC', createdAt: 'DESC' } });
   }
 
   // Admin view — porteur voit seulement ses initiatives, admin/super_admin voient tout
@@ -29,7 +29,7 @@ export class InitiativesService {
     if (user.role === Role.PORTEUR) {
       where.ownerUserId = user.id;
     }
-    return this.repo.find({ where, order: { createdAt: 'DESC' } });
+    return this.repo.find({ where, order: { isPinned: 'DESC', createdAt: 'DESC' } });
   }
 
 
@@ -64,6 +64,13 @@ export class InitiativesService {
     const item = await this.repo.findOne({ where: { id } });
     if (!item) throw new NotFoundException('Initiative introuvable.');
     item.isVisible = !item.isVisible;
+    return this.repo.save(item);
+  }
+
+  async togglePinned(id: string): Promise<InitiativeEntity> {
+    const item = await this.repo.findOne({ where: { id } });
+    if (!item) throw new NotFoundException('Initiative introuvable.');
+    item.isPinned = !item.isPinned;
     return this.repo.save(item);
   }
 

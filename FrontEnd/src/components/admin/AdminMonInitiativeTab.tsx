@@ -24,6 +24,7 @@ import {
   Tag,
   Lightbulb,
   Video,
+  Pin,
 } from 'lucide-react';
 
 export const AdminMonInitiativeTab: React.FC = () => {
@@ -281,9 +282,17 @@ export const AdminMonInitiativeTab: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
-                        {init.domain}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+                          {init.domain}
+                        </span>
+                        {init.isPinned && (
+                          <span className="flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md bg-[#08233C] text-[#FADB58]">
+                            <Pin className="w-2.5 h-2.5 fill-current rotate-45 text-[#FADB58]" />
+                            <span>Épinglée</span>
+                          </span>
+                        )}
+                      </div>
                       <span
                         className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                           init.status === 'termine'
@@ -324,7 +333,15 @@ export const AdminMonInitiativeTab: React.FC = () => {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900">{activeInit.title}</h2>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-xl font-bold text-slate-900">{activeInit.title}</h2>
+                      {activeInit.isPinned && (
+                        <span className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#08233C] text-[#FADB58]">
+                          <Pin className="w-3 h-3 fill-current rotate-45 text-[#FADB58]" />
+                          <span>Épinglée en tête</span>
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-500 mt-1">
                       Porteur : <span className="font-semibold text-slate-700">{activeInit.ownerName}</span> ({activeInit.ownerType})
                     </p>

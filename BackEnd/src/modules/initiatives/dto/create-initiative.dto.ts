@@ -26,4 +26,8 @@ export class CreateInitiativeDto {
   @IsOptional() @IsArray() gallery?: Array<{ url: string; caption?: string }>;
 
   @ApiProperty({ required: false }) @IsOptional() @IsString() videoUrl?: string;
+
+  @ApiProperty({ required: false, default: false })
+  @IsOptional()
+  isPinned?: boolean;
 }

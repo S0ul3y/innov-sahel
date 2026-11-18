@@ -8,12 +8,15 @@ import {
   CheckCircle2, 
   Clock, 
   ChevronRight,
-  PlusCircle
+  PlusCircle,
+  Pin,
+  PinOff
 } from 'lucide-react';
 import { getMediaUrl, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const InitiativesView: React.FC = () => {
-  const { initiatives, communes, openInitiativeById, currentUserRole, setActiveModal } = useApp();
+  const { initiatives, communes, openInitiativeById, currentUserRole, setActiveModal, togglePinInitiative } = useApp();
+  const [pinningId, setPinningId] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCommuneFilter, setSelectedCommuneFilter] = useState<string>('all');
@@ -21,6 +24,18 @@ export const InitiativesView: React.FC = () => {
 
   // Extract unique domains
   const allDomains = Array.from(new Set(initiatives.map(i => i.domain)));
+
+  const handleTogglePin = async (e: React.MouseEvent, initiativeId: string) => {
+    e.stopPropagation();
+    try {
+      setPinningId(initiativeId);
+      await togglePinInitiative(initiativeId);
+    } catch (err) {
+      console.error('Erreur lors de l\'épinglage:', err);
+    } finally {
+      setPinningId(null);
+    }
+  };
 
   const filteredInitiatives = initiatives.filter(init => {
     const matchesSearch = init.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -32,6 +47,11 @@ export const InitiativesView: React.FC = () => {
     const matchesDomain = selectedDomainFilter === 'all' || init.domain === selectedDomainFilter;
 
     return matchesSearch && matchesCommune && matchesDomain;
+  }).sort((a, b) => {
+    // Les initiatives épinglées toujours en premier
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return (new Date(b.createdAt || 0).getTime()) - (new Date(a.createdAt || 0).getTime());
   });
 
   return (
@@ -164,8 +184,41 @@ export const InitiativesView: React.FC = () => {
                 <div
                   key={init.id}
                   onClick={() => openInitiativeById(init.id)}
-                  className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md hover:border-[#38B6FF] transition-all cursor-pointer flex flex-col group"
+                  className={`bg-white rounded-3xl border overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col group relative ${
+                    init.isPinned 
+                      ? 'border-[#38B6FF] ring-2 ring-[#38B6FF]/20 shadow-sm' 
+                      : 'border-slate-200 hover:border-[#38B6FF]'
+                  }`}
                 >
+                  {/* Badge Épinglé */}
+                  {init.isPinned && (
+                    <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#08233C] text-[#FADB58] text-[10px] font-black uppercase tracking-wider shadow-md border border-[#FADB58]/40">
+                      <Pin className="w-3 h-3 fill-current rotate-45 text-[#FADB58]" />
+                      <span>À la une / Épinglée</span>
+                    </div>
+                  )}
+
+                  {/* Bouton d'action Épingler (réservé aux admins) */}
+                  {(currentUserRole === 'admin' || currentUserRole === 'super_admin') && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleTogglePin(e, init.id)}
+                      disabled={pinningId === init.id}
+                      title={init.isPinned ? "Désépingler cette initiative" : "Épingler cette initiative en premier"}
+                      className={`absolute top-3 right-3 z-20 p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer shadow-md ${
+                        init.isPinned
+                          ? 'bg-[#08233C]/90 text-[#FADB58] hover:bg-red-600 hover:text-white'
+                          : 'bg-white/90 text-slate-700 hover:bg-[#38B6FF] hover:text-white'
+                      }`}
+                    >
+                      {init.isPinned ? (
+                        <Pin className="w-4 h-4 fill-current rotate-45" />
+                      ) : (
+                        <Pin className="w-4 h-4" />
+                      )}
+                    </button>
+                  )}
+
                   {/* Cover */}
                   <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
                     <img
@@ -176,14 +229,18 @@ export const InitiativesView: React.FC = () => {
                       }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <span className="absolute top-3 left-3 bg-[#FADB58] text-[#08233C] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
-                      {init.domain}
-                    </span>
+                    {!init.isPinned && (
+                      <span className="absolute top-3 left-3 bg-[#FADB58] text-[#08233C] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
+                        {init.domain}
+                      </span>
+                    )}
                     <span className="absolute bottom-3 left-3 bg-[#08233C]/85 text-white backdrop-blur-xs text-[11px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
                       <MapPin className="w-3 h-3 text-[#FADB58]" />
                       {commune?.name}
                     </span>
-                    <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                    <span className={`absolute ${
+                      currentUserRole === 'admin' || currentUserRole === 'super_admin' ? 'bottom-3 right-3' : 'top-3 right-3'
+                    } text-[10px] font-bold px-2 py-0.5 rounded-md ${
                       init.status === 'termine' ? 'bg-emerald-600 text-white' : init.status === 'en_cours' ? 'bg-amber-500 text-white' : 'bg-blue-600 text-white'
                     }`}>
                       {init.status === 'termine' ? 'Terminé' : init.status === 'en_cours' ? 'En cours' : 'Démarré'}
