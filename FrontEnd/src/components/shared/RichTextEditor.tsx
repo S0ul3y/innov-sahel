@@ -72,7 +72,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       // Only set if the contents are truly different to avoid cursor jumps
       if (value === '' && editor.getText() === '') return;
       if (editor.getHTML() !== value) {
-        editor.commands.setContent(value || '', false);
+        editor.commands.setContent(value || '', { emitUpdate: false });
       }
     }
   }, [value, editor]);

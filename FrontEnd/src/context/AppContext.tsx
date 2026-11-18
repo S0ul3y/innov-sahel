@@ -80,8 +80,8 @@ interface AppContextType {
   currentUserRole: UserRole;
   setCurrentUserRole: (role: UserRole) => void;
   activeUser: UserAccount;
-  activeModal: 'idea' | 'problem' | 'publish' | null;
-  setActiveModal: (modal: 'idea' | 'problem' | 'publish' | null) => void;
+  activeModal: 'idea' | 'problem' | 'publish' | 'confirmation' | null;
+  setActiveModal: (modal: 'idea' | 'problem' | 'publish' | 'confirmation' | null) => void;
   selectedInitiative: Initiative | null;
   setSelectedInitiative: (init: Initiative | null) => void;
   selectedPublication: Publication | null;
@@ -173,7 +173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [lowBandwidthMode, setLowBandwidthMode] = useState<boolean>(false);
 
   // Modals & detail views
-  const [activeModal, setActiveModal] = useState<'idea' | 'problem' | 'publish' | null>(null);
+  const [activeModal, setActiveModal] = useState<'idea' | 'problem' | 'publish' | 'confirmation' | null>(null);
   const [selectedInitiative, setSelectedInitiative] = useState<Initiative | null>(null);
   const [selectedPublication, setSelectedPublication] = useState<Publication | null>(null);
   const [confirmationData, setConfirmationData] = useState<ConfirmationData | null>(null);
@@ -342,19 +342,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         name: authUser.name,
         email: authUser.email,
         phone: authUser.phone || '',
-        role: authUser.role,
+        role: authUser.role === 'super_admin' ? 'super_admin' : authUser.role === 'admin' ? 'admin' : 'porteur',
         adminLevel: authUser.adminLevel,
         communeId: authUser.communeId,
         initiativeName: authUser.initiativeName,
         status: authUser.status,
       }
     : (currentUserId
-        ? (users.find(u => u.id === currentUserId) || { id: 'anon', name: 'Visiteur Citoyen', email: '', phone: '', role: 'porteur' as UserRole, status: 'actif' as const })
+        ? (users.find(u => u.id === currentUserId) || { id: 'anon', name: 'Visiteur Citoyen', email: '', phone: '', role: 'porteur' as const, status: 'actif' as const })
         : (currentUserRole === 'admin' 
-            ? (users[0] || { id: 'anon', name: 'Admin', email: '', phone: '', role: 'admin' as UserRole, status: 'actif' as const })
+            ? (users[0] || { id: 'anon', name: 'Admin', email: '', phone: '', role: 'admin' as const, status: 'actif' as const })
             : currentUserRole === 'porteur' 
-              ? (users.find(u => u.role === 'porteur') || { id: 'anon', name: 'Porteur', email: '', phone: '', role: 'porteur' as UserRole, status: 'actif' as const })
-              : { id: 'anon', name: 'Visiteur Citoyen', email: '', phone: '', role: 'porteur' as UserRole, status: 'actif' as const }));
+              ? (users.find(u => u.role === 'porteur') || { id: 'anon', name: 'Porteur', email: '', phone: '', role: 'porteur' as const, status: 'actif' as const })
+              : { id: 'anon', name: 'Visiteur Citoyen', email: '', phone: '', role: 'porteur' as const, status: 'actif' as const }));
 
   // ─── Connexion avec authentification API réelle ───────────────────────────
   const loginWithApi = async (credentials: LoginCredentials) => {

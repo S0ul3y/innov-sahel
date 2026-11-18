@@ -507,7 +507,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   >
                     {communes.map(c => (
                       <option key={c.id} value={c.id}>
-                        {c.name} ({c.region})
+                        {c.name} ({c.district})
                       </option>
                     ))}
                   </select>

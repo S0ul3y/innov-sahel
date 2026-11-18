@@ -32,7 +32,7 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
 /** Layout citoyen permanent : Header + contenu + Footer + modals */
 const CitizenLayout: React.FC = () => {
-  const { activeModal } = useApp();
+  const { activeModal, confirmationData } = useApp();
   const location = useLocation();
 
   return (
@@ -61,7 +61,7 @@ const CitizenLayout: React.FC = () => {
 
 /** Layout admin : espace administratif isolé */
 const AdminLayout: React.FC = () => {
-  const { activeModal } = useApp();
+  const { activeModal, confirmationData } = useApp();
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">

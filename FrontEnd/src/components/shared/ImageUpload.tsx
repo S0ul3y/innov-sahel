@@ -9,6 +9,7 @@ interface ImageUploadProps {
   accept?: string;
   maxSizeMB?: number;
   className?: string;
+  aspectRatio?: string;
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({

@@ -140,14 +140,14 @@ export const InitiativeDetailView: React.FC = () => {
   // Normalisation des photos de la galerie (objets { url, caption } ou strings)
   const rawGallery = selectedInitiative.gallery || (selectedInitiative as any).galleryImages || [];
   const galleryItems: Array<{ url: string; caption?: string }> = Array.isArray(rawGallery)
-    ? rawGallery
+    ? (rawGallery
         .map((item: any) => {
           if (!item) return null;
           if (typeof item === 'string') return { url: getMediaUrl(item), caption: '' };
           if (typeof item === 'object' && item.url) return { url: getMediaUrl(item.url), caption: item.caption || '' };
           return null;
         })
-        .filter((item): item is { url: string; caption?: string } => item !== null)
+        .filter(Boolean) as Array<{ url: string; caption?: string }>)
     : [];
 
   // Sécurisation des objectifs et résultats optionnels
