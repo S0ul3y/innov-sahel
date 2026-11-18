@@ -57,6 +57,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
     status: 'en_cours',
     coverImage: '',
     videoUrl: '',
+    isPinned: false,
   });
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -116,6 +117,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
       status: 'en_cours',
       coverImage: '',
       videoUrl: '',
+      isPinned: false,
     });
     setIsEditing(true);
   };
@@ -135,6 +137,7 @@ export const AdminMonInitiativeTab: React.FC = () => {
       status: init.status,
       coverImage: init.coverImage || '',
       videoUrl: init.videoUrl || '',
+      isPinned: init.isPinned || false,
     });
     setIsEditing(true);
   };
@@ -618,6 +621,29 @@ export const AdminMonInitiativeTab: React.FC = () => {
                   aspectRatio="16/9"
                 />
               </div>
+
+              {/* Option Épingler l'initiative sur la page initiatives */}
+              {(activeUser?.role === 'admin' || activeUser?.role === 'super_admin') && (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isPinned || false}
+                      onChange={e => setFormData({ ...formData, isPinned: e.target.checked })}
+                      className="mt-0.5 w-4 h-4 text-[#38B6FF] rounded border-slate-300 focus:ring-[#38B6FF] cursor-pointer"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <Pin className="w-3.5 h-3.5 text-[#38B6FF] fill-current rotate-45" />
+                        Épingler cette initiative en haut de la page Initiatives
+                      </span>
+                      <span className="text-[11px] text-slate-500 block mt-0.5">
+                        L'initiative apparaîtra en tête de liste pour tous les citoyens sur la page Initiatives.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              )}
 
               {/* Vidéo YouTube */}
               <div>
