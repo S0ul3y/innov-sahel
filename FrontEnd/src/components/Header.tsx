@@ -45,15 +45,17 @@ export const Header: React.FC = () => {
     { id: 'a_propos', label: 'À propos', icon: <Info className="w-4 h-4" /> },
   ];
 
-  // If connected as Admin or Porteur, add "Mon Espace"
-  const isConnected = currentUserRole === 'admin' || currentUserRole === 'porteur';
+  // If connected as Admin, Super Admin, or Porteur, add "Mon Espace"
+  const isConnected = currentUserRole === 'admin' || currentUserRole === 'super_admin' || currentUserRole === 'porteur';
   const navItems = isConnected
     ? [
         ...baseNavItems,
         { 
           id: 'mon_espace' as TabType, 
           label: 'Mon Espace', 
-          icon: currentUserRole === 'admin' ? <ShieldCheck className="w-4 h-4 text-[#FADB58]" /> : <User className="w-4 h-4 text-[#38B6FF]" /> 
+          icon: (currentUserRole === 'admin' || currentUserRole === 'super_admin') 
+            ? <ShieldCheck className="w-4 h-4 text-[#FADB58]" /> 
+            : <User className="w-4 h-4 text-[#38B6FF]" /> 
         }
       ]
     : baseNavItems;
@@ -122,8 +124,8 @@ export const Header: React.FC = () => {
             {isConnected ? (
               <div className="hidden sm:flex items-center gap-2 bg-white/10 rounded-md px-2 py-0.5 border border-white/15">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[10px] text-slate-200 font-semibold truncate max-w-[140px]">
-                  {currentUserRole === 'admin' ? '🛡️ Admin IMPACT SAHEL' : `👩🏾 ${activeUser.name || 'Porteur'}`}
+                <span className="text-[10px] text-slate-200 font-semibold truncate max-w-[160px]">
+                  {currentUserRole === 'super_admin' ? '👑 Super Admin' : currentUserRole === 'admin' ? '🛡️ Admin IMPACT SAHEL' : `👩🏾 ${activeUser.name || 'Porteur'}`}
                 </span>
                 <button
                   id="top-logout-btn"
@@ -236,7 +238,11 @@ export const Header: React.FC = () => {
                 onClick={() => handleNavClick('mon_espace')}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#38B6FF]/15 text-[#08233C] text-xs font-bold"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#0B3B60]" />
+                {(currentUserRole === 'admin' || currentUserRole === 'super_admin') ? (
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#0B3B60]" />
+                ) : (
+                  <User className="w-3.5 h-3.5 text-[#0B3B60]" />
+                )}
                 <span className="hidden sm:inline">Mon Espace</span>
               </button>
             ) : (
@@ -379,10 +385,10 @@ export const Header: React.FC = () => {
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-1.5 rounded-lg bg-white/20 text-[#FADB58]">
-                        {currentUserRole === 'admin' ? <ShieldCheck className="w-5 h-5" /> : <User className="w-5 h-5" />}
+                        {(currentUserRole === 'admin' || currentUserRole === 'super_admin') ? <ShieldCheck className="w-5 h-5" /> : <User className="w-5 h-5" />}
                       </div>
                       <div className="text-left">
-                        <span>Mon Espace ({currentUserRole === 'admin' ? 'Admin' : 'Porteur'})</span>
+                        <span>Mon Espace ({(currentUserRole === 'admin' || currentUserRole === 'super_admin') ? (currentUserRole === 'super_admin' ? 'Super Admin' : 'Admin') : 'Porteur'})</span>
                         <p className="text-[11px] opacity-80 font-normal">Tableau de bord de gestion</p>
                       </div>
                     </div>
@@ -432,7 +438,7 @@ export const Header: React.FC = () => {
                         {activeUser.name || 'Utilisateur'}
                       </p>
                       <p className="text-[10px] text-slate-500 truncate">
-                        {currentUserRole === 'admin' ? '🛡️ Administrateur IMPACT SAHEL' : '👩🏾 Porteur d’initiative'}
+                        {currentUserRole === 'super_admin' ? '👑 Super Administrateur' : currentUserRole === 'admin' ? '🛡️ Administrateur IMPACT SAHEL' : '👩🏾 Porteur d’initiative'}
                       </p>
                     </div>
                     <button

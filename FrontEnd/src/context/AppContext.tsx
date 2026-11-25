@@ -28,7 +28,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 // Les données statiques communes (fixes, pas de CRUD) sont conservées uniquement pour les communes
 import { INITIAL_COMMUNES } from '../data/mockData';
 
-export const tabToPath = (tab: TabType): string => {
+export const tabToPath = (tab: TabType, role?: UserRole): string => {
   switch (tab) {
     case 'accueil':
       return '/accueil';
@@ -39,7 +39,7 @@ export const tabToPath = (tab: TabType): string => {
     case 'actualites':
       return '/actualites';
     case 'mon_espace':
-      return '/mon-espace';
+      return (role === 'admin' || role === 'super_admin') ? '/admin' : '/mon-espace';
     case 'a_propos':
       return '/a-propos';
     case 'connexion':
@@ -140,7 +140,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setActiveTab = (tab: TabType) => {
     setSelectedInitiative(null);
     setSelectedPublication(null);
-    navigate(tabToPath(tab));
+    navigate(tabToPath(tab, currentUserRole));
   };
 
   const [selectedCommuneId, setSelectedCommuneIdState] = useState<string>(() => {
@@ -351,8 +351,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     : (currentUserId
         ? (users.find(u => u.id === currentUserId) || { id: 'anon', name: 'Visiteur Citoyen', email: '', phone: '', role: 'porteur' as const, status: 'actif' as const })
-        : (currentUserRole === 'admin' 
-            ? (users[0] || { id: 'anon', name: 'Admin', email: '', phone: '', role: 'admin' as const, status: 'actif' as const })
+        : (currentUserRole === 'super_admin' || currentUserRole === 'admin' 
+            ? (users[0] || { id: 'anon', name: currentUserRole === 'super_admin' ? 'Super Admin' : 'Admin', email: '', phone: '', role: (currentUserRole === 'super_admin' ? 'super_admin' : 'admin') as any, status: 'actif' as const })
             : currentUserRole === 'porteur' 
               ? (users.find(u => u.role === 'porteur') || { id: 'anon', name: 'Porteur', email: '', phone: '', role: 'porteur' as const, status: 'actif' as const })
               : { id: 'anon', name: 'Visiteur Citoyen', email: '', phone: '', role: 'porteur' as const, status: 'actif' as const }));
