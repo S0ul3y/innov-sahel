@@ -231,8 +231,8 @@ export const Header: React.FC = () => {
 
           {/* Right Action Icons on Small Screens (Hamburger Menu Button) */}
           <div className="flex items-center gap-2 lg:hidden">
-            {/* Compact Login/Logout status button on mobile */}
-            {isConnected ? (
+            {/* Compact Espace status button on mobile (visible only when connected) */}
+            {isConnected && (
               <button
                 id="mobile-header-espace-badge"
                 onClick={() => handleNavClick('mon_espace')}
@@ -244,15 +244,6 @@ export const Header: React.FC = () => {
                   <User className="w-3.5 h-3.5 text-[#0B3B60]" />
                 )}
                 <span className="hidden sm:inline">Mon Espace</span>
-              </button>
-            ) : (
-              <button
-                id="mobile-header-login-btn"
-                onClick={() => handleNavClick('connexion')}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#08233C] text-white text-xs font-bold shadow-xs"
-              >
-                <LogIn className="w-3.5 h-3.5 text-[#FADB58]" />
-                <span>Connexion</span>
               </button>
             )}
 
