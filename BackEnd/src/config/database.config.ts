@@ -21,7 +21,7 @@ export const ALL_ENTITIES = [
 export const getDatabaseConfig = (): TypeOrmModuleOptions => {
   const dbType = process.env.DB_TYPE || 'mysql';
 
-  // ─── MySQL / MariaDB (Développement & phpMyAdmin) ─────────
+  // ─── MySQL / MariaDB / TiDB Cloud ─────────────────────────
   if (dbType === 'mysql') {
     return {
       type: 'mysql',
@@ -32,10 +32,14 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
       database: process.env.DB_DATABASE || 'innovsahel_db',
       entities: ALL_ENTITIES,
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production', // Crée/met à jour automatiquement les tables en dev
+      synchronize: process.env.NODE_ENV !== 'production', // jamais true en prod
       charset: 'utf8mb4_unicode_ci',
       timezone: 'Z',
       logging: process.env.NODE_ENV === 'development',
+      // SSL requis pour TiDB Cloud (et tout MySQL hébergé en production)
+      ...(process.env.DB_SSL === 'true'
+        ? { ssl: { rejectUnauthorized: false } }
+        : {}),
     };
   }
 

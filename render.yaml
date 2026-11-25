@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: innov-sahel-api
+    runtime: node
+    rootDir: BackEnd
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_TYPE
+        value: mysql
+      - key: DB_SSL
+        value: "true"
+      # Les variables sensibles (DB_HOST, DB_PASSWORD, JWT_SECRET, etc.)
+      # doivent être ajoutées manuellement dans le dashboard Render
