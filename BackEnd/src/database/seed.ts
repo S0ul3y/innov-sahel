@@ -20,6 +20,7 @@ import { InitiativeEntity } from '../modules/initiatives/entities/initiative.ent
 import { PublicationEntity } from '../modules/publications/entities/publication.entity';
 import { ContributionEntity } from '../modules/contributions/entities/contribution.entity';
 import { CommentEntity } from '../modules/comments/entities/comment.entity';
+import { MediaAssetEntity } from '../modules/media/entities/media-asset.entity';
 import { Role } from '../common/enums/role.enum';
 
 const ALL_ENTITIES = [
@@ -29,6 +30,7 @@ const ALL_ENTITIES = [
   PublicationEntity,
   ContributionEntity,
   CommentEntity,
+  MediaAssetEntity,
 ];
 
 // ─── Configuration DataSource pour le seed ────────────────────────────────────
@@ -46,6 +48,9 @@ const AppDataSource =
         charset: 'utf8mb4_unicode_ci',
         entities: ALL_ENTITIES,
         synchronize: true,
+        ...(process.env.DB_SSL === 'true'
+          ? { ssl: { rejectUnauthorized: false } }
+          : {}),
       })
     : new DataSource({
         type: 'sqljs',
