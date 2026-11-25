@@ -121,6 +121,26 @@ export class MediaController {
     };
   }
 
+  // ─── POST /api/media/upload-public-multiple ── Upload multiple sans auth (max 5 photos) ─────
+  @Post('upload-public-multiple')
+  @ApiOperation({ summary: 'Téléverser jusqu’à 5 images sans authentification (contributions citoyennes)' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FilesInterceptor('files', 5, { storage: memStorage, limits: { fileSize: MAX_MULTER_SIZE } }))
+  async uploadPublicMultiple(@UploadedFiles() files: Express.Multer.File[]) {
+    if (!files || files.length === 0) throw new BadRequestException('Aucun fichier fourni.');
+    const limitedFiles = files.slice(0, 5);
+    const results = await this.mediaSvc.processAndSaveMultiple(limitedFiles, {
+      uploadedBy: 'public',
+      role: 'photo',
+      generateThumbnail: true,
+    });
+    return results.map(r => ({
+      id: r.asset.id,
+      url: r.url,
+      thumbnailUrl: r.thumbnailUrl,
+    }));
+  }
+
   // ─── GET /api/media/entity/:type/:id ── Lister les médias d'une entité ─────
   @Get('entity/:type/:id')
   @ApiOperation({ summary: 'Lister les médias liés à une entité [PUBLIC]' })

@@ -19,11 +19,15 @@ import {
   Lightbulb,
   Target,
   Image as ImageIcon,
-  Loader2
+  Loader2,
+  FileText,
+  Reply,
+  Video
 } from 'lucide-react';
 import { getMediaUrl, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 import { InitiativesController } from '../../controllers/initiativesController';
 import { Initiative } from '../../models/initiative.model';
+import { YoutubeEmbed } from '../shared/YoutubeEmbed';
 
 export const InitiativeDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -327,17 +331,6 @@ export const InitiativeDetailView: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Quick Action in Card */}
-            <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
-              <button
-                onClick={() => setActiveModal('idea')}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#08233C] text-white font-extrabold text-xs hover:bg-[#0B3B60] transition-all cursor-pointer shadow-sm"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#FADB58]" />
-                <span>Soutenir / Rejoindre</span>
-              </button>
-            </div>
           </div>
 
           {/* Problem & Solution Grid (Structure officielle §6.3.2) */}
@@ -451,43 +444,36 @@ export const InitiativeDetailView: React.FC = () => {
             </div>
           )}
 
-          {/* Project Timeline & Milestones */}
+          {/* Description détaillée du projet */}
           <div className="space-y-3 pt-2">
             <h3 className="font-extrabold text-[#08233C] text-base flex items-center gap-2">
-              <Clock className="w-5 h-5 text-[#38B6FF]" />
-              Chronologie & étapes d'avancement
+              <FileText className="w-5 h-5 text-[#38B6FF]" />
+              Description détaillée du projet
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              {[
-                { label: 'Candidature & sélection', date: selectedInitiative.startDate, status: 'done' },
-                { label: 'Accompagnement & formation', date: 'Mois +2', status: 'done' },
-                { label: 'Déploiement sur le terrain', date: 'En action', status: selectedInitiative.status === 'en_cours' || selectedInitiative.status === 'termine' ? 'done' : 'current' },
-                { label: 'Pérennisation & bilan', date: 'Mois +12', status: selectedInitiative.status === 'termine' ? 'done' : 'upcoming' },
-              ].map((step, i) => (
-                <div
-                  key={i}
-                  className={`p-3.5 rounded-2xl border text-xs font-semibold ${
-                    step.status === 'done'
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                      : step.status === 'current'
-                        ? 'bg-amber-50 border-amber-200 text-amber-900'
-                        : 'bg-slate-50 border-slate-200 text-slate-400'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] uppercase font-bold tracking-wider">Étape {i + 1}</span>
-                    {step.status === 'done' ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    ) : (
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    )}
-                  </div>
-                  <p className="font-bold text-slate-900">{step.label}</p>
-                  <span className="text-[11px] opacity-75">{step.date}</span>
-                </div>
-              ))}
-            </div>
+            {selectedInitiative.description ? (
+              <div
+                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: selectedInitiative.description }}
+              />
+            ) : (
+              <div className="bg-slate-50 rounded-2xl p-6 border border-dashed border-slate-300 text-slate-600 text-sm leading-relaxed">
+                {selectedInitiative.solution || selectedInitiative.problem || "Aucune description détaillée n'a encore été renseignée pour cette initiative."}
+              </div>
+            )}
           </div>
+
+          {/* Vidéo de présentation si renseignée */}
+          {selectedInitiative.videoUrl && (
+            <div className="space-y-3 pt-2">
+              <h3 className="font-extrabold text-[#08233C] text-base flex items-center gap-2">
+                <Video className="w-5 h-5 text-[#38B6FF]" />
+                Vidéo de présentation du projet
+              </h3>
+              <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-xs max-w-2xl bg-slate-900">
+                <YoutubeEmbed youtubeUrl={selectedInitiative.videoUrl} title={selectedInitiative.title} />
+              </div>
+            </div>
+          )}
 
           {/* Return & Share Bottom Footer */}
           <div className="pt-8 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
@@ -633,9 +619,27 @@ export const InitiativeDetailView: React.FC = () => {
                   </div>
                   <span className="text-[11px] text-slate-400">{comm.date}</span>
                 </div>
-                <p className="text-xs text-slate-700 leading-relaxed font-normal">
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
                   {comm.message}
                 </p>
+
+                {/* Réponse du porteur d'initiative / administration */}
+                {comm.replyText && (
+                  <div className="mt-3 p-3.5 rounded-xl bg-[#EFF8FF] border border-[#38B6FF]/40 text-xs sm:text-sm shadow-xs">
+                    <div className="flex items-center justify-between gap-2 mb-1.5 font-bold text-[#0B3B60]">
+                      <div className="flex items-center gap-1.5">
+                        <Reply className="w-4 h-4 text-[#38B6FF] rotate-180 flex-shrink-0" />
+                        <span>Réponse du porteur ({comm.replyAuthorName || selectedInitiative.ownerName}) :</span>
+                      </div>
+                      {comm.replyDate && (
+                        <span className="text-[10px] text-slate-400 font-normal">{comm.replyDate}</span>
+                      )}
+                    </div>
+                    <p className="text-slate-800 leading-relaxed pl-5 font-normal">
+                      {comm.replyText}
+                    </p>
+                  </div>
+                )}
               </div>
             ))
           )}

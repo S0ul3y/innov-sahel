@@ -37,7 +37,7 @@ export const IdeaModal: React.FC = () => {
   const [communeId, setCommuneId] = useState<string>(selectedCommuneId);
   const [category, setCategory] = useState<string>('Jeunesse');
   const [description, setDescription] = useState<string>('');
-  const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [photos, setPhotos] = useState<string[]>([]);
   const [citizenName, setCitizenName] = useState<string>('');
   const [citizenPhone, setCitizenPhone] = useState<string>('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
@@ -62,14 +62,15 @@ export const IdeaModal: React.FC = () => {
         communeId,
         category,
         description: description.trim(),
-        photoUrl: photoUrl || undefined,
+        photoUrl: photos[0] || undefined,
+        photos: photos,
         citizenName: citizenName.trim() || undefined,
         citizenPhone: citizenPhone.trim() || undefined
       });
 
       setActiveModal(null);
       setDescription('');
-      setPhotoUrl('');
+      setPhotos([]);
       setCitizenName('');
       setCitizenPhone('');
       setError('');
@@ -82,19 +83,35 @@ export const IdeaModal: React.FC = () => {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    if (isUploadingPhoto) return;
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
     setError('');
+
+    const remainingSlots = 5 - photos.length;
+    if (remainingSlots <= 0) {
+      setError('Vous avez déjà atteint la limite maximale de 5 photos.');
+      return;
+    }
+
+    const filesToUpload = Array.from(fileList).slice(0, remainingSlots);
     setIsUploadingPhoto(true);
+
     try {
-      const res = await UploadsController.uploadPublicImage(file);
-      setPhotoUrl(res.url);
+      const results = await UploadsController.uploadPublicImages(filesToUpload);
+      const newUrls = results.map(r => r.url).filter(Boolean);
+      setPhotos(prev => [...prev, ...newUrls].slice(0, 5));
     } catch (err: any) {
-      console.warn('Erreur upload photo citoyenne:', err);
-      setError(err?.message || "Impossible d'enregistrer l'image. Vous pouvez soumettre sans photo.");
+      console.warn('Erreur upload photos citoyennes:', err);
+      setError(err?.message || "Impossible d'enregistrer les photos sélectionnées. Vous pouvez soumettre sans photo.");
     } finally {
       setIsUploadingPhoto(false);
+      e.target.value = '';
     }
+  };
+
+  const handleRemovePhoto = (indexToRemove: number) => {
+    setPhotos(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   return (
@@ -203,13 +220,19 @@ export const IdeaModal: React.FC = () => {
               />
             </div>
 
-            {/* Photo Attachment (Facultative) */}
+            {/* Photos Attachment (Facultatif - Max 5 photos) */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                4. Ajouter une photo (facultatif)
-              </label>
-              <div className="flex items-center gap-3">
-                <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 rounded-xl p-3 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer text-xs font-medium text-slate-600">
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-slate-800">
+                  4. Ajouter des photos (facultatif)
+                </label>
+                <span className={`text-[11px] font-bold ${photos.length >= 5 ? 'text-amber-600' : 'text-slate-500'}`}>
+                  {photos.length}/5 photo{photos.length > 1 ? 's' : ''} {photos.length >= 5 ? '(max atteint)' : ''}
+                </span>
+              </div>
+
+              {photos.length < 5 && (
+                <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 rounded-xl p-3 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer text-xs font-medium text-slate-600 mb-2">
                   {isUploadingPhoto ? (
                     <Loader className="w-4 h-4 text-amber-600 animate-spin" />
                   ) : (
@@ -217,35 +240,45 @@ export const IdeaModal: React.FC = () => {
                   )}
                   <span>
                     {isUploadingPhoto
-                      ? 'Optimisation et traitement...'
-                      : (photoUrl ? 'Changer la photo' : 'Prendre ou choisir une photo')}
+                      ? 'Téléversement en cours...'
+                      : `Choisir ou prendre des photos (max 5) - Reste ${5 - photos.length}`}
                   </span>
                   <input
                     type="file"
+                    multiple
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     disabled={isUploadingPhoto}
                     onChange={handleImageUpload}
                     className="hidden"
                   />
                 </label>
-                {photoUrl && (
-                  <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0">
-                    <img 
-                      src={photoUrl.startsWith('http') ? photoUrl : UploadsController.getImageUrl(photoUrl)} 
-                      alt="Aperçu" 
-                      className="w-full h-full object-cover" 
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setPhotoUrl('')}
-                      className="absolute inset-0 bg-black/40 text-white flex items-center justify-center text-xs hover:bg-black/60"
-                      title="Supprimer la photo"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-              </div>
+              )}
+
+              {/* Grille des photos téléversées (jusqu'à 5) */}
+              {photos.length > 0 && (
+                <div className="grid grid-cols-5 gap-2 pt-1">
+                  {photos.map((url, idx) => (
+                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group bg-slate-100 shadow-2xs">
+                      <img 
+                        src={url.startsWith('http') ? url : UploadsController.getImageUrl(url)} 
+                        alt={`Photo ${idx + 1}`} 
+                        className="w-full h-full object-cover" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePhoto(idx)}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center text-[10px] font-bold shadow-xs cursor-pointer transition-transform hover:scale-110"
+                        title="Supprimer cette photo"
+                      >
+                        ✕
+                      </button>
+                      <span className="absolute bottom-1 left-1 px-1.5 py-0.2 bg-black/60 text-white rounded text-[9px] font-bold">
+                        {idx + 1}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Optional Citizen Contact */}

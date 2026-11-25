@@ -78,26 +78,22 @@ const AdminLayout: React.FC = () => {
   );
 };
 
-/** Guard : redirige vers /connexion si non authentifié en tant qu'admin */
+/** Guard : redirige vers /connexion si non authentifié (admin, super_admin ou porteur) */
 const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUserRole } = useApp();
-  if (currentUserRole !== 'admin' && currentUserRole !== 'super_admin') {
+  if (currentUserRole !== 'admin' && currentUserRole !== 'super_admin' && currentUserRole !== 'porteur') {
     return <Navigate to="/connexion" replace />;
   }
   return <>{children}</>;
 };
 
-/** Guard : redirige vers /connexion si non connecté (porteur ou admin) */
+/** Guard : redirige vers /connexion si non connecté */
 const PorteurGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUserRole } = useApp();
   if (currentUserRole === 'visitor') {
     return <Navigate to="/connexion" replace />;
   }
-  // Admins ont leur propre espace
-  if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
-    return <Navigate to="/admin" replace />;
-  }
-  return <>{children}</>;
+  return <Navigate to="/admin" replace />;
 };
 
 const AppRoutes: React.FC = () => {
@@ -126,12 +122,12 @@ const AppRoutes: React.FC = () => {
         {/* Alias pour compatibilité */}
         <Route path="/publications/:id" element={<PublicationDetailView />} />
 
-        {/* Mon Espace Porteur d'initiative */}
+        {/* Mon Espace Porteur d'initiative (redirection vers l'espace admin unifié) */}
         <Route
           path="/mon-espace"
           element={
             <PorteurGuard>
-              <DashboardView />
+              <Navigate to="/admin" replace />
             </PorteurGuard>
           }
         />

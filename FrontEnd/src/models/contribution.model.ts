@@ -8,6 +8,7 @@ export interface CitizenContribution {
   category: string;
   description: string;
   photoUrl?: string;
+  photos?: string[];
   locationText?: string;
   gpsCoordinates?: { lat: number; lng: number } | null;
   citizenName?: string;
@@ -24,6 +25,7 @@ export interface CreateContributionDto {
   category: string;
   description: string;
   photoUrl?: string;
+  photos?: string[];
   locationText?: string;
   gpsCoordinates?: { lat: number; lng: number } | null;
   citizenName?: string;

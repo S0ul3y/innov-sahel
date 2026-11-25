@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { LoginView } from './LoginView';
 import { getPublicationCover, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
+import { AdminMonInitiativeTab } from '../admin/AdminMonInitiativeTab';
 
 export const DashboardView: React.FC = () => {
   const {
@@ -139,174 +140,9 @@ export const DashboardView: React.FC = () => {
     return <LoginView />;
   }
 
-  // ROLE 1: PORTEUR D'INITIATIVE DASHBOARD (Section 6.5)
+  // ROLE 1: PORTEUR D'INITIATIVE DASHBOARD
   if (currentUserRole === 'porteur') {
-    return (
-      <div className="space-y-8 pb-12">
-        {/* Welcome & Role Switcher */}
-        <section className="bg-gradient-to-r from-[#08233C] via-[#0B3B60] to-[#08233C] text-white rounded-3xl p-6 sm:p-8 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-[#FADB58] text-[#08233C] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
-                Porteur d'initiative
-              </span>
-              <span className="text-xs text-slate-300">Lab'Citoyen Bamako</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold">
-              Bienvenue, {activeUser.name} !
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-200 mt-1">
-              Projet accompagné : <strong>{activeUser.initiativeName || myInitiative?.title}</strong>
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setActiveModal('publish')}
-              className="flex items-center gap-2 bg-[#FADB58] text-[#08233C] font-extrabold px-5 py-3 rounded-2xl hover:bg-[#ebd048] transition-transform active:scale-95 shadow-md text-xs sm:text-sm cursor-pointer"
-            >
-              <PlusCircle className="w-4 h-4 text-[#08233C]" />
-              <span>Publier une actualité</span>
-            </button>
-            <button
-              onClick={logout}
-              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-3 rounded-2xl border border-white/20 transition-all text-xs sm:text-sm cursor-pointer"
-              title="Quitter le tableau de bord et revenir au mode citoyen"
-            >
-              <LogOut className="w-4 h-4 text-slate-300" />
-              <span>Déconnexion</span>
-            </button>
-          </div>
-        </section>
-
-        {/* 6.5.1 Trois Indicateurs en Gros Caractères */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs text-center">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
-              Mes Publications
-            </span>
-            <span className="text-4xl font-black text-[#08233C] block mb-1">
-              {myPublications.length}
-            </span>
-            <span className="text-[11px] text-slate-500">
-              Mises en ligne immédiatement
-            </span>
-          </div>
-
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs text-center">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
-              Nombre total de vues
-            </span>
-            <span className="text-4xl font-black text-[#38B6FF] block mb-1">
-              {myTotalViews.toLocaleString()}
-            </span>
-            <span className="text-[11px] text-slate-500">
-              Lectures citoyennes enregistrées
-            </span>
-          </div>
-
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs text-center">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
-              Commentaires reçus
-            </span>
-            <span className="text-4xl font-black text-amber-500 block mb-1">
-              {myCommentsCount}
-            </span>
-            <span className="text-[11px] text-slate-500">
-              Interactions & soutiens des habitants
-            </span>
-          </div>
-        </section>
-
-        {/* My Initiative Sheet */}
-        {myInitiative && (
-          <section className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase text-[#38B6FF] tracking-wider block">
-                  Ma fiche de projet
-                </span>
-                <h3 className="text-lg font-extrabold text-[#08233C]">
-                  {myInitiative.title}
-                </h3>
-              </div>
-              <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full self-start sm:self-center">
-                Statut : {myInitiative.status === 'termine' ? 'Terminé' : 'En cours de réalisation'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="bg-slate-50 p-4 rounded-2xl">
-                <span className="font-bold text-slate-700 block mb-1">Solution mise en œuvre :</span>
-                <p className="text-slate-600">{myInitiative.solution}</p>
-              </div>
-              <div className="bg-slate-50 p-4 rounded-2xl">
-                <span className="font-bold text-slate-700 block mb-1">Bénéficiaires directs :</span>
-                <p className="text-slate-600">{myInitiative.beneficiaries}</p>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* 6.5.3 Liste des Publications du Porteur */}
-        <section className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-extrabold text-[#08233C]">
-              Mes actualités d'avancement publiées ({myPublications.length})
-            </h3>
-            <button
-              onClick={() => setActiveModal('publish')}
-              className="text-xs font-bold text-[#0B3B60] hover:underline flex items-center gap-1"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>Nouvelle actualité</span>
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {myPublications.map((pub) => (
-              <div
-                key={pub.id}
-                className="p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100/80 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <img
-                    src={getPublicationCover(pub)}
-                    alt=""
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = DEFAULT_PUBLICATION_COVERS[pub.type || 'default'] || DEFAULT_PUBLICATION_COVERS.default;
-                    }}
-                    className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
-                  />
-                  <div>
-                    <span className="text-[11px] text-slate-400 font-semibold">{pub.date}</span>
-                    <h4 className="font-bold text-slate-900 text-sm line-clamp-1">{pub.title}</h4>
-                    <span className="text-xs text-slate-500">{pub.viewsCount} vues • Format {pub.format}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-end sm:self-center">
-                  <button
-                    onClick={() => openPublicationById(pub.id)}
-                    className="p-2 bg-white rounded-xl border border-slate-200 text-slate-700 hover:text-[#38B6FF] transition-colors text-xs font-bold flex items-center gap-1 cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Voir</span>
-                  </button>
-                  <button
-                    onClick={() => deletePublication(pub.id)}
-                    className="p-2 bg-white rounded-xl border border-slate-200 text-red-600 hover:bg-red-50 transition-colors text-xs font-bold cursor-pointer"
-                    title="Supprimer cette publication"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-    );
+    return <AdminMonInitiativeTab />;
   }
 
   // ROLE 2: ADMIN IMPACT SAHEL DASHBOARD (Section 6.6)
@@ -529,12 +365,29 @@ export const DashboardView: React.FC = () => {
                         </div>
                       </div>
 
-                      {contrib.photoUrl && (
-                        <div>
-                          <span className="font-bold text-slate-500 block text-xs mb-1">Photo jointe :</span>
-                          <img src={contrib.photoUrl} alt="Preuve" className="h-32 rounded-lg object-cover border border-slate-200" />
-                        </div>
-                      )}
+                      {(() => {
+                        const allPhotos = (Array.isArray(contrib.photos) && contrib.photos.length > 0)
+                          ? contrib.photos
+                          : (contrib.photoUrl ? [contrib.photoUrl] : []);
+                        if (allPhotos.length === 0) return null;
+                        return (
+                          <div>
+                            <span className="font-bold text-slate-500 block text-xs mb-1">
+                              Photos jointes ({allPhotos.length}) :
+                            </span>
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                              {allPhotos.map((pUrl, pIdx) => (
+                                <img
+                                  key={pIdx}
+                                  src={pUrl}
+                                  alt={`Preuve ${pIdx + 1}`}
+                                  className="h-28 w-28 rounded-lg object-cover border border-slate-200 flex-shrink-0"
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Status Change Buttons */}
                       <div className="pt-2 border-t border-slate-100">

@@ -10,9 +10,16 @@ import { AdminMonInitiativeTab } from './AdminMonInitiativeTab';
 import { Menu, Sparkles, Globe, LogOut } from 'lucide-react';
 
 export const AdminDashboardView: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<AdminTabId>('dashboard');
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { activeUser, setActiveTab, logout } = useApp();
+  const isPorteur = activeUser?.role === 'porteur';
+  const [currentTab, setCurrentTab] = useState<AdminTabId>(isPorteur ? 'mon-initiative' : 'dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (activeUser?.role === 'porteur') {
+      setCurrentTab('mon-initiative');
+    }
+  }, [activeUser?.role]);
 
   return (
     <div className="min-h-screen bg-[#F0F7FF] flex flex-col lg:flex-row antialiased text-slate-800">

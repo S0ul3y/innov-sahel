@@ -13,6 +13,7 @@ export interface Initiative {
   domain: string;
   problem: string;
   solution: string;
+  description?: string;
   beneficiaries: string;
   startDate: string;
   status: InitiativeStatus;
@@ -36,6 +37,7 @@ export interface CreateInitiativeDto {
   domain: string;
   problem: string;
   solution: string;
+  description?: string;
   beneficiaries?: string;
   startDate?: string;
   status?: InitiativeStatus;

@@ -40,7 +40,7 @@ export const tabToPath = (tab: TabType, role?: UserRole): string => {
     case 'actualites':
       return '/actualites';
     case 'mon_espace':
-      return (role === 'admin' || role === 'super_admin') ? '/admin' : '/mon-espace';
+      return (role === 'admin' || role === 'super_admin' || role === 'porteur') ? '/admin' : '/connexion';
     case 'a_propos':
       return '/a-propos';
     case 'connexion':
@@ -367,10 +367,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setCurrentUserRole(res.user.role);
       setCurrentUserId(res.user.id);
       
-      if (res.user.role === 'admin' || res.user.role === 'super_admin') {
+      if (res.user.role === 'admin' || res.user.role === 'super_admin' || res.user.role === 'porteur') {
         navigate('/admin');
       } else {
-        navigate('/mon-espace');
+        navigate('/accueil');
       }
       
       // Recharger les données complètes depuis la DB
@@ -416,11 +416,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       setCurrentUserId(users[1]?.id || 'u-porteur-1');
     }
-    if (role === 'admin') {
-      navigate('/admin');
-    } else {
-      navigate('/mon-espace');
-    }
+    navigate('/admin');
   };
 
   const logout = () => {
@@ -448,6 +444,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       category: data.category,
       description: data.description,
       photoUrl: data.photoUrl,
+      photos: data.photos,
       locationText: data.locationText,
       gpsCoordinates: data.gpsCoordinates,
       citizenName: data.citizenName,

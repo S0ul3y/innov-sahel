@@ -26,6 +26,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
+    // Guard anti-double-trigger : si un upload est déjà en cours, ignorer
+    if (isUploading) return;
     setError(null);
     if (file.size > maxSizeMB * 1024 * 1024) {
       setError(`Le fichier dépasse ${maxSizeMB} MB.`);
@@ -45,6 +47,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       setPreviewUrl(value || '');
     } finally {
       setIsUploading(false);
+      // Réinitialiser la valeur de l'input pour éviter re-trigger sur re-render React
+      if (inputRef.current) inputRef.current.value = '';
     }
   };
 
@@ -56,7 +60,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleFile(file);
+    if (file) {
+      handleFile(file);
+      // Réinitialiser immédiatement pour éviter un double onChange
+      e.target.value = '';
+    }
   };
 
   const handleRemove = () => {
@@ -152,6 +160,7 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = async (files: FileList) => {
+    if (isUploading) return;
     setError(null);
     setIsUploading(true);
     try {
@@ -162,6 +171,7 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       setError(e.message || 'Erreur lors du téléversement.');
     } finally {
       setIsUploading(false);
+      if (inputRef.current) inputRef.current.value = '';
     }
   };
 

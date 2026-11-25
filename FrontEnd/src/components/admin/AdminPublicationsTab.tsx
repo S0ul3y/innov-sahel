@@ -131,45 +131,15 @@ export const AdminPublicationsTab: React.FC = () => {
     }
 
     try {
-      let resolvedInitiativeId: string | undefined = newInitiativeId || undefined;
-
-      // Si type Initiative et utilisateur admin ou super admin
-      if (newType === 'initiative_update') {
-        const existingInit = initiatives.find(i => (newInitiativeId && i.id === newInitiativeId) || i.title.toLowerCase() === newTitle.trim().toLowerCase());
-
-        if (existingInit) {
-          resolvedInitiativeId = existingInit.id;
-          if (existingInit.domain !== 'Impact Sahel') {
-            await updateInitiative(existingInit.id, { domain: 'Impact Sahel' });
-          }
-        } else {
-          // Créer l'initiative Impact Sahel pour qu'elle apparaisse dans la section dédiée sur la page Initiatives
-          try {
-            const created = await createInitiative({
-              title: newTitle.trim(),
-              ownerName: 'Impact Sahel',
-              ownerType: 'collectif',
-              ownerBio: newSummary.trim() || 'Initiative structurante publiée par Impact Sahel',
-              communeId: newCommuneId,
-              domain: 'Impact Sahel',
-              problem: newSummary.trim(),
-              solution: newContent.trim() || newSummary.trim(),
-              status: 'en_cours',
-              coverImage: finalCover,
-            });
-            resolvedInitiativeId = created.id;
-          } catch (initErr) {
-            console.warn('Création auto initiative échouée:', initErr);
-          }
-        }
-      }
+      // Pour initiative_update : lier à une initiative existante si sélectionnée, sans auto-création
+      const resolvedInitiativeId: string | undefined = newInitiativeId || undefined;
 
       await addPublication({
         title: newTitle.trim(),
         metaDescription: newSummary.trim(),
         content: newContent.trim() || newSummary.trim(),
         communeId: newCommuneId,
-        authorName: newType === 'commune_news' ? `Mairie de la ${communeObj?.name || 'Commune'}` : activeUser.name,
+        authorName: newType === 'commune_news' ? `Mairie de la ${communeObj?.name || 'Commune'}` : 'Impact Sahel',
         authorRole: 'admin',
         type: newType,
         format: newVideoUrl.trim() ? 'video' : 'carousel',

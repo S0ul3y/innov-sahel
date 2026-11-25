@@ -57,11 +57,17 @@ export class PublicationsService {
       youtubeId = match ? match[1] : null;
     }
 
+    const authorRole = dto.authorRole || ((user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) ? 'admin' : 'porteur');
+    let authorName = dto.authorName || user.name;
+    if (dto.type === 'initiative_update' && authorRole === 'admin') {
+      authorName = 'Impact Sahel';
+    }
+
     const pub = this.repo.create({
       ...dto,
       authorUserId: user.id,
-      authorName: dto.authorName || user.name,
-      authorRole: dto.authorRole || ((user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) ? 'admin' : 'porteur'),
+      authorName,
+      authorRole,
       youtubeId,
       date: dto.date || new Date().toISOString(),
     });
@@ -73,6 +79,9 @@ export class PublicationsService {
     if (!item) throw new NotFoundException('Publication introuvable.');
     if (user.role === Role.PORTEUR && item.authorUserId !== user.id) {
       throw new ForbiddenException("Vous ne pouvez modifier que vos propres publications.");
+    }
+    if ((dto.type === 'initiative_update' || item.type === 'initiative_update') && item.authorRole === 'admin') {
+      dto.authorName = 'Impact Sahel';
     }
     // Re-extraction youtubeId si l'URL change
     if (dto.youtubeUrl && dto.youtubeUrl !== item.youtubeUrl) {

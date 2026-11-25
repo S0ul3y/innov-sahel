@@ -8,6 +8,7 @@ import type { Metadata } from 'sharp';
 const sharp = require('sharp');
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
@@ -95,6 +96,8 @@ export class MediaService {
           public_id: publicId,
           resource_type: 'image',
           format: 'webp',
+          overwrite: true,
+          unique_filename: false,
         },
         (error, result) => {
           if (error) return reject(error);
@@ -195,21 +198,33 @@ export class MediaService {
 
     if (this.isCloudinaryConfigured) {
       try {
-        const baseName = path.parse(filename).name;
-        const uploadRes = await this.uploadBufferToCloudinary(optimizedBuffer, 'optimized', baseName);
+        // Hachage sha1 déterministe basé sur le contenu optimisé pour éviter toute duplication
+        const contentHash = crypto.createHash('sha1').update(optimizedBuffer).digest('hex').substring(0, 20);
+        const publicId = `img_${contentHash}`;
+
+        // Upload unique vers Cloudinary (pas de doublon thumbnail uploadé)
+        const uploadRes = await this.uploadBufferToCloudinary(optimizedBuffer, 'images', publicId);
         finalUrl = uploadRes.secure_url;
         finalFilename = uploadRes.secure_url;
 
-        if (thumbBuffer && thumbnailFilename) {
-          const thumbBaseName = path.parse(thumbnailFilename).name;
-          const thumbRes = await this.uploadBufferToCloudinary(thumbBuffer, 'thumbnails', thumbBaseName);
-          finalThumbUrl = thumbRes.secure_url;
-          finalThumbFilename = thumbRes.secure_url;
-        }
+        // Miniature Cloudinary générée dynamiquement via transformation d'URL (c_fill,w_400,h_300)
+        // sans créer de deuxième fichier image doublon sur Cloudinary
+        finalThumbUrl = finalUrl.replace('/upload/', '/upload/c_fill,w_400,h_300,g_center/');
+        finalThumbFilename = null;
 
         this.logger.log(
           `☁️ Image envoyée sur Cloudinary : ${finalUrl} (depuis ${file.originalname})`,
         );
+
+        // Si l'asset existe déjà en BDD pour cette même URL, le réutiliser directement
+        const existingAsset = await this.repo.findOne({ where: { filename: finalUrl } });
+        if (existingAsset) {
+          return {
+            asset: existingAsset,
+            url: finalUrl,
+            thumbnailUrl: finalThumbUrl,
+          };
+        }
       } catch (err: any) {
         this.logger.error(`Erreur upload Cloudinary : ${err?.message || err}. Basculement sur stockage local.`);
         // Fallback local en cas d'erreur réseau ponctuelle
@@ -297,13 +312,13 @@ export class MediaService {
     // Si c'est une image Cloudinary
     if (this.isCloudinaryConfigured && asset.filename.includes('cloudinary.com')) {
       try {
-        // Extraction du public_id depuis l'URL Cloudinary (ex: innovsahel/optimized/uuid)
-        const match = asset.filename.match(/innovsahel\/(?:optimized|thumbnails)\/[^.]+/);
+        // Extraction du public_id depuis l'URL Cloudinary (ex: innovsahel/images/img_xxx)
+        const match = asset.filename.match(/innovsahel\/(?:images|optimized|thumbnails)\/[^.]+/);
         if (match) {
           await cloudinary.uploader.destroy(match[0]);
         }
         if (asset.thumbnailFilename) {
-          const thumbMatch = asset.thumbnailFilename.match(/innovsahel\/(?:optimized|thumbnails)\/[^.]+/);
+          const thumbMatch = asset.thumbnailFilename.match(/innovsahel\/(?:images|optimized|thumbnails)\/[^.]+/);
           if (thumbMatch) {
             await cloudinary.uploader.destroy(thumbMatch[0]);
           }

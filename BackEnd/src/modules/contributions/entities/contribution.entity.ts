@@ -38,9 +38,13 @@ export class ContributionEntity {
   @Column({ type: 'text' })
   description: string;
 
-  // Photo facultative (URL de l'upload)
-  @Column({ nullable: true })
+  // Photo facultative (URL de l'upload principal)
+  @Column({ type: 'text', nullable: true })
   photoUrl: string;
+
+  // Photos multiples facultatives (jusqu'à 5 photos max)
+  @Column({ type: 'simple-json', nullable: true })
+  photos: string[];
 
   // Lieu en texte libre
   @Column({ nullable: true })

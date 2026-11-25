@@ -23,6 +23,10 @@ export class CreateContributionDto {
   @IsOptional() @IsString()
   photoUrl?: string;
 
+  @ApiProperty({ required: false, type: [String], description: 'Jusqu’à 5 photos' })
+  @IsOptional()
+  photos?: string[];
+
   @ApiProperty({ required: false, example: 'Quartier Korofina, devant l\'école' })
   @IsOptional() @IsString()
   locationText?: string;

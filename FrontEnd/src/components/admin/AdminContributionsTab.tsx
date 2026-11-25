@@ -301,11 +301,17 @@ export const AdminContributionsTab: React.FC = () => {
                         <strong className="text-slate-700">{contrib.citizenName}</strong>
                       </span>
                     )}
-                    {contrib.photoUrl && (
-                      <span className="text-[#38B6FF] font-bold">
-                        📷 1 Photo jointe
-                      </span>
-                    )}
+                    {(() => {
+                      const allPhotos = (Array.isArray(contrib.photos) && contrib.photos.length > 0)
+                        ? contrib.photos
+                        : (contrib.photoUrl ? [contrib.photoUrl] : []);
+                      if (allPhotos.length === 0) return null;
+                      return (
+                        <span className="text-[#38B6FF] font-bold">
+                          📷 {allPhotos.length} Photo{allPhotos.length > 1 ? 's' : ''} jointe{allPhotos.length > 1 ? 's' : ''}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -330,31 +336,44 @@ export const AdminContributionsTab: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Right: Photo */}
+                      {/* Right: Photos */}
                       <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
-                          Photo / Preuve jointe
-                        </span>
-                        {contrib.photoUrl ? (
-                          <div className="relative group">
-                            <img
-                              src={contrib.photoUrl}
-                              alt="Photo du problème"
-                              className="h-32 w-full object-cover rounded-xl border border-slate-200"
-                            />
-                            <a
-                              href={contrib.photoUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 hover:bg-black"
-                            >
-                              <span>Agrandir</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-                        ) : (
-                          <p className="text-slate-400 text-xs italic pt-2">Aucune photo jointe par le citoyen.</p>
-                        )}
+                        {(() => {
+                          const allPhotos = (Array.isArray(contrib.photos) && contrib.photos.length > 0)
+                            ? contrib.photos
+                            : (contrib.photoUrl ? [contrib.photoUrl] : []);
+                          return (
+                            <>
+                              <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
+                                Photos / Preuves jointes ({allPhotos.length})
+                              </span>
+                              {allPhotos.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                  {allPhotos.map((url, i) => (
+                                    <div key={i} className="relative group aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                                      <img
+                                        src={url}
+                                        alt={`Photo ${i + 1}`}
+                                        className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                                      />
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute bottom-1.5 right-1.5 px-2 py-0.5 bg-black/70 hover:bg-black text-white rounded text-[10px] font-bold flex items-center gap-1"
+                                      >
+                                        <span>#{i + 1}</span>
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      </a>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-slate-400 text-xs italic pt-2">Aucune photo jointe par le citoyen.</p>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
 

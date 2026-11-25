@@ -14,6 +14,7 @@ export class CreateInitiativeDto {
   @ApiProperty() @IsString() domain: string;
   @ApiProperty() @IsString() problem: string;
   @ApiProperty() @IsString() solution: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() description?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsString() beneficiaries?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsString() startDate?: string;
 

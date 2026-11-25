@@ -41,9 +41,9 @@ export class InitiativesController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.PORTEUR)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Créer une initiative [PORTEUR ou ADMIN]' })
+  @ApiOperation({ summary: 'Créer une initiative [ADMIN uniquement]' })
   create(@Body() dto: CreateInitiativeDto, @CurrentUser() user: UserEntity) {
     return this.svc.create(dto, user);
   }

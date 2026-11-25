@@ -58,6 +58,35 @@ export const UploadsController = {
   },
 
   /**
+   * Téléverse jusqu'à 5 images sans authentification (idées et signalements citoyens).
+   */
+  uploadPublicImages: async (files: File[]): Promise<UploadResult[]> => {
+    const limitedFiles = files.slice(0, 5);
+    const formData = new FormData();
+    limitedFiles.forEach(f => formData.append('files', f));
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    
+    const res = await fetch(`${baseUrl}/media/upload-public-multiple`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+    if (res.status === 404) {
+      // Fallback unitaire uniquement si l'endpoint multiple n'existe pas (404)
+      const results: UploadResult[] = [];
+      for (const file of limitedFiles) {
+        const single = await UploadsController.uploadPublicImage(file);
+        results.push(single);
+      }
+      return results;
+    }
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Erreur lors du téléversement des photos.');
+  },
+
+  /**
    * Téléverse plusieurs images (carrousel).
    * @returns tableau de UploadResult
    */

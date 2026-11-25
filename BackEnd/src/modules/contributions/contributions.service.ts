@@ -16,7 +16,16 @@ export class ContributionsService {
 
   // ─── PUBLIC : Soumettre une contribution ────────────────────────────────────
   async create(dto: CreateContributionDto): Promise<{ message: string }> {
-    const contribution = this.repo.create(dto);
+    const photos = Array.isArray(dto.photos)
+      ? dto.photos.filter(Boolean).slice(0, 5)
+      : (dto.photoUrl ? [dto.photoUrl] : []);
+    const photoUrl = photos.length > 0 ? photos[0] : (dto.photoUrl || null);
+
+    const contribution = this.repo.create({
+      ...dto,
+      photos,
+      photoUrl,
+    });
     const saved = await this.repo.save(contribution);
 
     // Déclenche l'email de notification aux admins (§7.6 cahier des charges)

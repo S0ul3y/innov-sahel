@@ -23,6 +23,7 @@ export const PublishModal: React.FC = () => {
     setActiveModal, 
     selectedCommuneId, 
     communes, 
+    initiatives,
     addPublication, 
     currentUserRole, 
     activeUser 
@@ -51,6 +52,23 @@ export const PublishModal: React.FC = () => {
   const [videoError, setVideoError] = useState<string>('');
 
   const [formError, setFormError] = useState<string>('');
+
+  // Porteur initiatives identification
+  const userInitiatives = initiatives.filter(
+    i => (activeUser?.id && i.ownerUserId === activeUser.id) ||
+         (activeUser?.name && i.ownerName && i.ownerName.toLowerCase().trim() === activeUser.name.toLowerCase().trim())
+  );
+  const defaultInit = userInitiatives.length > 0 ? userInitiatives[0] : (initiatives.length > 0 ? initiatives[0] : null);
+  const [initiativeId, setInitiativeId] = useState<string>(defaultInit?.id || '');
+
+  React.useEffect(() => {
+    if (currentUserRole === 'porteur' && defaultInit && !initiativeId) {
+      setInitiativeId(defaultInit.id);
+      if (defaultInit.communeId) {
+        setCommuneId(defaultInit.communeId);
+      }
+    }
+  }, [currentUserRole, defaultInit, initiativeId]);
 
   if (activeModal !== 'publish') return null;
 
@@ -127,6 +145,7 @@ export const PublishModal: React.FC = () => {
         authorName: activeUser.name || 'Porteur Lab Citoyen',
         authorRole: currentUserRole === 'admin' ? 'admin' : 'porteur',
         communeId,
+        initiativeId: currentUserRole === 'porteur' ? (initiativeId || defaultInit?.id || undefined) : undefined,
         title: title.trim(),
         metaDescription: metaDescription.trim(),
         coverImage: finalCover || undefined,
@@ -201,13 +220,18 @@ export const PublishModal: React.FC = () => {
             {isPreview ? (
               /* Live Preview rendering */
               <div className="bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-200 space-y-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="bg-[#38B6FF] text-[#08233C] px-2.5 py-0.5 rounded-full text-xs font-bold">
                     {format === 'carousel' ? 'Carrousel photos' : 'Vidéo'}
                   </span>
                   <span className="text-xs text-slate-500 font-semibold">
                     {communes.find(c => c.id === communeId)?.name}
                   </span>
+                  {currentUserRole === 'porteur' && (
+                    <span className="text-xs bg-[#08233C] text-[#FADB58] px-2.5 py-0.5 rounded-full font-bold">
+                      Initiative : {userInitiatives.find(i => i.id === initiativeId)?.title || defaultInit?.title} • Porteur : {activeUser?.name}
+                    </span>
+                  )}
                 </div>
 
                 <h2 className="text-xl sm:text-2xl font-black text-[#08233C]">
@@ -256,6 +280,53 @@ export const PublishModal: React.FC = () => {
             ) : (
               /* Edit Mode */
               <>
+                {/* Mention obligatoire Initiative & Porteur pour le rôle Porteur */}
+                {currentUserRole === 'porteur' && (
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#EFF8FF] to-[#E6F3FE] border-2 border-[#38B6FF]/40 shadow-xs space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#38B6FF] animate-pulse" />
+                      <span className="text-xs font-black uppercase tracking-wider text-[#0B3B60]">
+                        Actualité liée à l'initiative citoyenne
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div className="bg-white/90 p-3 rounded-xl border border-[#38B6FF]/30">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Initiative associée *
+                        </label>
+                        {userInitiatives.length > 1 ? (
+                          <select
+                            value={initiativeId}
+                            onChange={(e) => {
+                              setInitiativeId(e.target.value);
+                              const found = userInitiatives.find(i => i.id === e.target.value);
+                              if (found?.communeId) setCommuneId(found.communeId);
+                            }}
+                            className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#08233C] focus:ring-2 focus:ring-[#38B6FF]"
+                          >
+                            {userInitiatives.map(i => (
+                              <option key={i.id} value={i.id}>{i.title}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <p className="font-extrabold text-[#08233C] text-sm truncate">
+                            {defaultInit?.title || activeUser?.initiativeName || 'Mon Initiative InnovSahel'}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="bg-white/90 p-3 rounded-xl border border-[#38B6FF]/30 flex flex-col justify-center">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                          Porteur / Porteuse du projet
+                        </span>
+                        <p className="font-extrabold text-[#0B3B60] text-sm mt-0.5 truncate">
+                          {activeUser?.name || defaultInit?.ownerName || 'Porteur du projet'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 7.1.1 Choix du format de publication */}
                 <div>
                   <label className="block text-xs font-extrabold text-[#08233C] uppercase tracking-wide mb-2">

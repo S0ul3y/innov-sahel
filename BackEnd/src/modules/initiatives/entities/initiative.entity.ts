@@ -53,6 +53,10 @@ export class InitiativeEntity {
   @Column({ type: 'text' })
   solution: string;
 
+  /** Description détaillée / avancée du projet (format HTML / Markdown / RichText) */
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
   @Column({ type: 'text', nullable: true })
   beneficiaries: string;
 

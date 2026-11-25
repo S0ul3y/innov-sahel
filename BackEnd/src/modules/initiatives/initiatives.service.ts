@@ -17,9 +17,13 @@ export class InitiativesService {
   ) {}
 
   async findAll(communeId?: string): Promise<InitiativeEntity[]> {
-    const where: any = { isVisible: true };
-    if (communeId) where.communeId = communeId;
-    return this.repo.find({ where, order: { isPinned: 'DESC', createdAt: 'DESC' } });
+    const qb = this.repo.createQueryBuilder('initiative')
+      .where('initiative.isVisible = :isVisible', { isVisible: true })
+      .andWhere('initiative.ownerUserId IS NOT NULL');
+    if (communeId) {
+      qb.andWhere('initiative.communeId = :communeId', { communeId });
+    }
+    return qb.orderBy('initiative.isPinned', 'DESC').addOrderBy('initiative.createdAt', 'DESC').getMany();
   }
 
   // Admin view — porteur voit seulement ses initiatives, admin/super_admin voient tout
@@ -42,9 +46,12 @@ export class InitiativesService {
   }
 
   async create(dto: CreateInitiativeDto, user: UserEntity): Promise<InitiativeEntity> {
+    if (user.role === Role.PORTEUR) {
+      throw new ForbiddenException("Un porteur d'initiative ne peut pas créer d'initiative. Seul un administrateur peut créer une initiative.");
+    }
     const initiative = this.repo.create({
       ...dto,
-      ownerUserId: user.role === Role.PORTEUR ? user.id : null,
+      ownerUserId: (dto as any).ownerUserId || null,
       ownerName: dto.ownerName || user.name,
     });
     return this.repo.save(initiative);

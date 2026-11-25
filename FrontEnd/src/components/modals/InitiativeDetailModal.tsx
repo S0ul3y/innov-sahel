@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   X, 
@@ -14,8 +14,11 @@ import {
   Sparkles,
   ExternalLink,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Reply,
+  Video
 } from 'lucide-react';
+import { YoutubeEmbed } from '../shared/YoutubeEmbed';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const InitiativeDetailModal: React.FC = () => {
@@ -29,6 +32,7 @@ export const InitiativeDetailModal: React.FC = () => {
     comments, 
     addComment, 
     reportComment,
+    loadCommentsForInitiative,
     currentUserRole,
     activeUser,
     openPublicationById
@@ -38,6 +42,12 @@ export const InitiativeDetailModal: React.FC = () => {
   const [commentMessage, setCommentMessage] = useState<string>('');
   const [commentSuccess, setCommentSuccess] = useState<boolean>(false);
   const [activeGalleryIdx, setActiveGalleryIdx] = useState<number>(0);
+
+  useEffect(() => {
+    if (selectedInitiative?.id) {
+      loadCommentsForInitiative(selectedInitiative.id);
+    }
+  }, [selectedInitiative?.id, loadCommentsForInitiative]);
 
   if (!selectedInitiative) return null;
 
@@ -219,15 +229,43 @@ export const InitiativeDetailModal: React.FC = () => {
             </div>
 
             {/* Beneficiaries banner */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FADB58] text-[#08233C] flex items-center justify-center flex-shrink-0 font-bold">
-                <Sparkles className="w-5 h-5" />
+            {selectedInitiative.beneficiaries && (
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FADB58] text-[#08233C] flex items-center justify-center flex-shrink-0 font-bold">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-700 block">Bénéficiaires directs du projet :</span>
+                  <span className="text-sm font-medium text-slate-900">{selectedInitiative.beneficiaries}</span>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-bold text-slate-700 block">Bénéficiaires directs du projet :</span>
-                <span className="text-sm font-medium text-slate-900">{selectedInitiative.beneficiaries}</span>
+            )}
+
+            {/* Description détaillée avancée */}
+            {selectedInitiative.description && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-2">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#08233C] block">
+                  Description détaillée du projet
+                </span>
+                <div
+                  className="prose prose-slate max-w-none text-slate-800 text-xs sm:text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: selectedInitiative.description }}
+                />
               </div>
-            </div>
+            )}
+
+            {/* Vidéo de présentation si renseignée */}
+            {selectedInitiative.videoUrl && (
+              <div className="space-y-2">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#08233C] flex items-center gap-1.5">
+                  <Video className="w-3.5 h-3.5 text-[#38B6FF]" />
+                  Vidéo de présentation du projet
+                </span>
+                <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-900">
+                  <YoutubeEmbed youtubeUrl={selectedInitiative.videoUrl} title={selectedInitiative.title} />
+                </div>
+              </div>
+            )}
 
             {/* Gallery (Section 6.3.2) */}
             {selectedInitiative.gallery.length > 0 && (
@@ -394,6 +432,25 @@ export const InitiativeDetailModal: React.FC = () => {
                       <span className="text-[10px] text-slate-400">{c.date}</span>
                     </div>
                     <p className="text-slate-700">{c.message}</p>
+
+                    {/* Réponse du porteur d'initiative / admin */}
+                    {c.replyText && (
+                      <div className="mt-2.5 p-3 rounded-xl bg-[#EFF8FF] border border-[#38B6FF]/40 text-xs">
+                        <div className="flex items-center justify-between gap-2 mb-1 font-bold text-[#0B3B60]">
+                          <span className="flex items-center gap-1.5">
+                            <Reply className="w-3.5 h-3.5 text-[#38B6FF] rotate-180 flex-shrink-0" />
+                            Réponse du porteur ({c.replyAuthorName || selectedInitiative.ownerName}) :
+                          </span>
+                          {c.replyDate && (
+                            <span className="text-[10px] text-slate-400 font-normal">{c.replyDate}</span>
+                          )}
+                        </div>
+                        <p className="text-slate-800 leading-relaxed pl-5 font-normal">
+                          {c.replyText}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="mt-2 flex justify-end">
                       <button
                         onClick={() => reportComment(c.id)}
