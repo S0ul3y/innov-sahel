@@ -27,8 +27,7 @@ import {
   Send,
   Reply,
   CornerDownRight,
-  Loader2,
-  Pin
+  Loader2
 } from 'lucide-react';
 import { ImageUpload } from '../shared/ImageUpload';
 import { YoutubeEmbed } from '../shared/YoutubeEmbed';
@@ -86,7 +85,6 @@ export const AdminPublicationsTab: React.FC = () => {
   const [newImageUrl, setNewImageUrl] = useState('');
   const [newVideoUrl, setNewVideoUrl] = useState('');
   const [newInitiativeId, setNewInitiativeId] = useState('');
-  const [newIsPinned, setNewIsPinned] = useState(false);
 
   // Edit form state
   const [editType, setEditType] = useState<PublicationType>('commune_news');
@@ -97,7 +95,6 @@ export const AdminPublicationsTab: React.FC = () => {
   const [editImageUrl, setEditImageUrl] = useState('');
   const [editVideoUrl, setEditVideoUrl] = useState('');
   const [editInitiativeId, setEditInitiativeId] = useState('');
-  const [editIsPinned, setEditIsPinned] = useState(false);
 
   // Filtered publications
   const filteredPublications = publications.filter(pub => {
@@ -142,24 +139,23 @@ export const AdminPublicationsTab: React.FC = () => {
 
         if (existingInit) {
           resolvedInitiativeId = existingInit.id;
-          if (existingInit.isPinned !== newIsPinned) {
-            await updateInitiative(existingInit.id, { isPinned: newIsPinned });
+          if (existingInit.domain !== 'Impact Sahel') {
+            await updateInitiative(existingInit.id, { domain: 'Impact Sahel' });
           }
         } else {
-          // Créer l'initiative dans le Lab'Citoyen pour qu'elle apparaisse sur la page Initiatives
+          // Créer l'initiative Impact Sahel pour qu'elle apparaisse dans la section dédiée sur la page Initiatives
           try {
             const created = await createInitiative({
               title: newTitle.trim(),
-              ownerName: activeUser?.name || 'Initiative Citoyenne',
+              ownerName: 'Impact Sahel',
               ownerType: 'collectif',
-              ownerBio: newSummary.trim(),
+              ownerBio: newSummary.trim() || 'Initiative structurante publiée par Impact Sahel',
               communeId: newCommuneId,
-              domain: 'Innovation Citoyenne',
+              domain: 'Impact Sahel',
               problem: newSummary.trim(),
               solution: newContent.trim() || newSummary.trim(),
               status: 'en_cours',
               coverImage: finalCover,
-              isPinned: newIsPinned,
             });
             resolvedInitiativeId = created.id;
           } catch (initErr) {
@@ -186,7 +182,7 @@ export const AdminPublicationsTab: React.FC = () => {
         carouselImages: newImageUrl.trim() ? [{ url: newImageUrl.trim(), caption: newTitle.trim() }] : undefined
       });
 
-      setSuccessBanner(`La publication "${newTitle}" a été créée et mise en ligne${newType === 'initiative_update' && newIsPinned ? ' (Initiative épinglée en tête)' : ''}.`);
+      setSuccessBanner(`La publication "${newTitle}" a été créée et mise en ligne${newType === 'initiative_update' ? ' (Visible dans "Initiatives Impact Sahel")' : ''}.`);
       setIsCreateModalOpen(false);
       setNewTitle('');
       setNewSummary('');
@@ -194,7 +190,6 @@ export const AdminPublicationsTab: React.FC = () => {
       setNewVideoUrl('');
       setNewImageUrl('');
       setNewInitiativeId('');
-      setNewIsPinned(false);
       setTimeout(() => setSuccessBanner(null), 3500);
     } catch (err: any) {
       setCreateError(err?.message || 'Erreur lors de la création. Vérifiez votre connexion.');
@@ -213,8 +208,6 @@ export const AdminPublicationsTab: React.FC = () => {
     setEditImageUrl(pub.coverImage || '');
     setEditVideoUrl(pub.youtubeUrl || '');
     setEditInitiativeId(pub.initiativeId || '');
-    const linkedInit = initiatives.find(i => (pub.initiativeId && i.id === pub.initiativeId) || i.title.toLowerCase() === pub.title.toLowerCase());
-    setEditIsPinned(linkedInit ? !!linkedInit.isPinned : false);
   };
 
   const [editError, setEditError] = useState<string>('');
@@ -233,9 +226,6 @@ export const AdminPublicationsTab: React.FC = () => {
         const linkedInit = initiatives.find(i => (resolvedInitiativeId && i.id === resolvedInitiativeId) || i.title.toLowerCase() === editTitle.trim().toLowerCase());
         if (linkedInit) {
           resolvedInitiativeId = linkedInit.id;
-          if (linkedInit.isPinned !== editIsPinned) {
-            await updateInitiative(linkedInit.id, { isPinned: editIsPinned });
-          }
         }
       }
 
@@ -516,19 +506,13 @@ export const AdminPublicationsTab: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Badge Épinglé si initiative épinglée */}
-                    {pub.type === 'initiative_update' && (() => {
-                      const linkedInit = initiatives.find(i => (pub.initiativeId && i.id === pub.initiativeId) || i.title.toLowerCase() === pub.title.toLowerCase());
-                      if (linkedInit?.isPinned) {
-                        return (
-                          <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#08233C]/95 text-[#FADB58] text-[10px] font-black uppercase tracking-wider shadow-md border border-[#FADB58]/50 backdrop-blur-xs">
-                            <Pin className="w-3 h-3 fill-current rotate-45 text-[#FADB58]" />
-                            <span>Épinglée</span>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })()}
+                    {/* Badge Impact Sahel pour les publications d'initiative */}
+                    {pub.type === 'initiative_update' && (
+                      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#08233C]/95 text-[#FADB58] text-[10px] font-black uppercase tracking-wider shadow-md border border-[#FADB58]/50 backdrop-blur-xs">
+                        <Sparkles className="w-3 h-3 text-[#FADB58]" />
+                        <span>Impact Sahel</span>
+                      </div>
+                    )}
 
                     <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-bold">
                       <span>{commune?.name}</span>
@@ -573,36 +557,6 @@ export const AdminPublicationsTab: React.FC = () => {
                   </button>
 
                   <div className="flex items-center gap-1.5">
-                    {/* Toggle Pin rapide pour initiative (réservé admin et super_admin) */}
-                    {pub.type === 'initiative_update' && (currentUserRole === 'admin' || currentUserRole === 'super_admin') && (() => {
-                      const linkedInit = initiatives.find(i => (pub.initiativeId && i.id === pub.initiativeId) || i.title.toLowerCase() === pub.title.toLowerCase());
-                      if (linkedInit) {
-                        return (
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              try {
-                                await togglePinInitiative(linkedInit.id);
-                                setSuccessBanner(`L'initiative "${linkedInit.title}" a été ${linkedInit.isPinned ? 'désépinglée' : 'épinglée en tête sur la page Initiatives'}.`);
-                                setTimeout(() => setSuccessBanner(null), 3000);
-                              } catch (err: any) {
-                                console.error(err);
-                              }
-                            }}
-                            className={`p-2 rounded-xl transition-all cursor-pointer ${
-                              linkedInit.isPinned
-                                ? 'text-[#08233C] bg-[#FADB58] hover:bg-[#ebd048] shadow-xs'
-                                : 'text-slate-400 hover:text-[#08233C] hover:bg-slate-200'
-                            }`}
-                            title={linkedInit.isPinned ? "Désépingler cette initiative de la page Initiatives" : "Épingler cette initiative en premier sur la page Initiatives"}
-                          >
-                            <Pin className={`w-4 h-4 ${linkedInit.isPinned ? 'fill-current rotate-45' : ''}`} />
-                          </button>
-                        );
-                      }
-                      return null;
-                    })()}
-
                     {/* Modifier */}
                     <button
                       onClick={() => handleStartEdit(pub)}
@@ -759,47 +713,27 @@ export const AdminPublicationsTab: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Lorsque l'admin sélectionne "Initiative", un petit bouton épinglé ou non apparaît */}
+                    {/* Lorsque l'admin sélectionne "Initiative", information sur la section Impact Sahel */}
                     {newType === 'initiative_update' && (currentUserRole === 'admin' || currentUserRole === 'super_admin') && (
-                      <div className="mt-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 shadow-xs space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="p-2 rounded-xl bg-amber-100 text-[#08233C]">
-                              <Sparkles className="w-4 h-4 text-amber-600" />
-                            </div>
-                            <div>
-                              <span className="text-xs font-black text-[#08233C] uppercase tracking-wide flex items-center gap-1.5">
-                                Épingler cette initiative sur la page Initiatives
-                              </span>
-                              <p className="text-[11px] text-slate-600">
-                                {newIsPinned
-                                  ? "Cette initiative sera affichée en tête de liste pour tous les citoyens sur la page Initiatives."
-                                  : "L'initiative sera affichée dans l'ordre standard (non épinglée)."}
-                              </p>
-                            </div>
+                      <div className="mt-4 p-4 rounded-2xl bg-[#08233C]/5 border border-[#38B6FF]/30 shadow-xs space-y-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-2 rounded-xl bg-[#08233C] text-[#FADB58]">
+                            <Sparkles className="w-4 h-4 text-[#FADB58]" />
                           </div>
-
-                          {/* Petit bouton épinglé ou non */}
-                          <button
-                            type="button"
-                            id="btn-toggle-pin-new-publication"
-                            onClick={() => setNewIsPinned(!newIsPinned)}
-                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs shrink-0 ${
-                              newIsPinned
-                                ? 'bg-[#08233C] text-[#FADB58] ring-2 ring-[#FADB58] hover:bg-[#0B3B60]'
-                                : 'bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 hover:text-slate-900'
-                            }`}
-                            title={newIsPinned ? "Initiative actuellement épinglée (cliquez pour désépingler)" : "Initiative non épinglée (cliquez pour épingler)"}
-                          >
-                            <Pin className={`w-3.5 h-3.5 ${newIsPinned ? 'fill-current rotate-45 text-[#FADB58]' : 'text-slate-400'}`} />
-                            <span>{newIsPinned ? 'Épinglé : OUI' : 'Épinglé : NON'}</span>
-                          </button>
+                          <div>
+                            <span className="text-xs font-black text-[#08233C] uppercase tracking-wide flex items-center gap-1.5">
+                              Section mise en avant : Initiatives Impact Sahel
+                            </span>
+                            <p className="text-[11px] text-slate-600">
+                              Cette initiative apparaîtra en tête de la page Initiatives dans la section exclusive <strong className="text-[#08233C]">« Initiatives Impact Sahel »</strong>.
+                            </p>
+                          </div>
                         </div>
 
                         {/* Dropdown d'association d'initiative */}
-                        <div className="pt-2 border-t border-amber-200/60 flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div className="pt-2 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-2">
                           <label className="text-[11px] font-bold text-slate-700 whitespace-nowrap flex items-center gap-1">
-                            <span>Associer à l'initiative :</span>
+                            <span>Associer à une initiative existante :</span>
                           </label>
                           <select
                             value={newInitiativeId}
@@ -809,7 +743,6 @@ export const AdminPublicationsTab: React.FC = () => {
                               if (val) {
                                 const selectedInit = initiatives.find(i => i.id === val);
                                 if (selectedInit) {
-                                  setNewIsPinned(!!selectedInit.isPinned);
                                   if (!newTitle) setNewTitle(selectedInit.title);
                                   if (!newCommuneId && selectedInit.communeId) setNewCommuneId(selectedInit.communeId);
                                 }
@@ -817,10 +750,10 @@ export const AdminPublicationsTab: React.FC = () => {
                             }}
                             className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#38B6FF] cursor-pointer"
                           >
-                            <option value="">-- Créer / Lier automatiquement selon le titre --</option>
+                            <option value="">-- Créer une nouvelle initiative Impact Sahel ou lier selon le titre --</option>
                             {initiatives.map(init => (
                               <option key={init.id} value={init.id}>
-                                {init.isPinned ? '📌 ' : ''}{init.title} ({communes.find(c => c.id === init.communeId)?.name || 'District'})
+                                {init.title} ({communes.find(c => c.id === init.communeId)?.name || 'District'})
                               </option>
                             ))}
                           </select>
@@ -1105,66 +1038,37 @@ export const AdminPublicationsTab: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Lorsque l'admin sélectionne "Initiative", un petit bouton épinglé ou non apparaît */}
+                    {/* Lorsque l'admin sélectionne "Initiative", information sur la section Impact Sahel */}
                     {editType === 'initiative_update' && (currentUserRole === 'admin' || currentUserRole === 'super_admin') && (
-                      <div className="mt-3 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 shadow-xs space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="p-2 rounded-xl bg-amber-100 text-[#08233C]">
-                              <Sparkles className="w-4 h-4 text-amber-600" />
-                            </div>
-                            <div>
-                              <span className="text-xs font-black text-[#08233C] uppercase tracking-wide flex items-center gap-1.5">
-                                Épingler cette initiative sur la page Initiatives
-                              </span>
-                              <p className="text-[11px] text-slate-600">
-                                {editIsPinned
-                                  ? "Cette initiative sera affichée en tête de liste pour tous les citoyens sur la page Initiatives."
-                                  : "L'initiative sera affichée dans l'ordre standard (non épinglée)."}
-                              </p>
-                            </div>
+                      <div className="mt-3 p-4 rounded-2xl bg-[#08233C]/5 border border-[#38B6FF]/30 shadow-xs space-y-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-2 rounded-xl bg-[#08233C] text-[#FADB58]">
+                            <Sparkles className="w-4 h-4 text-[#FADB58]" />
                           </div>
-
-                          {/* Petit bouton épinglé ou non */}
-                          <button
-                            type="button"
-                            id="btn-toggle-pin-edit-publication"
-                            onClick={() => setEditIsPinned(!editIsPinned)}
-                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs shrink-0 ${
-                              editIsPinned
-                                ? 'bg-[#08233C] text-[#FADB58] ring-2 ring-[#FADB58] hover:bg-[#0B3B60]'
-                                : 'bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 hover:text-slate-900'
-                            }`}
-                            title={editIsPinned ? "Initiative actuellement épinglée (cliquez pour désépingler)" : "Initiative non épinglée (cliquez pour épingler)"}
-                          >
-                            <Pin className={`w-3.5 h-3.5 ${editIsPinned ? 'fill-current rotate-45 text-[#FADB58]' : 'text-slate-400'}`} />
-                            <span>{editIsPinned ? 'Épinglé : OUI' : 'Épinglé : NON'}</span>
-                          </button>
+                          <div>
+                            <span className="text-xs font-black text-[#08233C] uppercase tracking-wide flex items-center gap-1.5">
+                              Section mise en avant : Initiatives Impact Sahel
+                            </span>
+                            <p className="text-[11px] text-slate-600">
+                              Cette initiative est présentée tout en haut de la page Initiatives dans la section réservée <strong className="text-[#08233C]">« Initiatives Impact Sahel »</strong>.
+                            </p>
+                          </div>
                         </div>
 
                         {/* Dropdown d'association d'initiative */}
-                        <div className="pt-2 border-t border-amber-200/60 flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div className="pt-2 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center gap-2">
                           <label className="text-[11px] font-bold text-slate-700 whitespace-nowrap flex items-center gap-1">
                             <span>Associer à l'initiative :</span>
                           </label>
                           <select
                             value={editInitiativeId}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setEditInitiativeId(val);
-                              if (val) {
-                                const selectedInit = initiatives.find(i => i.id === val);
-                                if (selectedInit) {
-                                  setEditIsPinned(!!selectedInit.isPinned);
-                                }
-                              }
-                            }}
+                            onChange={(e) => setEditInitiativeId(e.target.value)}
                             className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#38B6FF] cursor-pointer"
                           >
                             <option value="">-- Conserver l'association actuelle ou automatique --</option>
                             {initiatives.map(init => (
                               <option key={init.id} value={init.id}>
-                                {init.isPinned ? '📌 ' : ''}{init.title} ({communes.find(c => c.id === init.communeId)?.name || 'District'})
+                                {init.title} ({communes.find(c => c.id === init.communeId)?.name || 'District'})
                               </option>
                             ))}
                           </select>

@@ -629,6 +629,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (init) {
       setSelectedInitiative(init);
       setSelectedPublication(null);
+      navigate(`/initiatives/${id}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    const pub = publications.find(p => p.id === id);
+    if (pub) {
+      openPublicationById(id);
+      return;
     }
     navigate(`/initiatives/${id}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
