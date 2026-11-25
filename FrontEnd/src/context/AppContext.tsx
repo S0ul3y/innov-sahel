@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { 
   Commune, 
   Initiative, 
+  CreateInitiativeDto,
   Publication, 
   Comment, 
   CitizenContribution, 
@@ -112,6 +113,7 @@ interface AppContextType {
   replyComment: (id: string, replyText: string, replyAuthorName?: string) => Promise<void>;
   reportComment: (id: string) => Promise<void>;
   deleteComment: (id: string) => Promise<void>;
+  createInitiative: (data: CreateInitiativeDto) => Promise<Initiative>;
   updateInitiative: (id: string, partial: Partial<Initiative>) => Promise<void>;
   togglePinInitiative: (id: string) => Promise<void>;
   createUserAccount: (account: Omit<UserAccount, 'id'> & { temporaryPassword?: string }) => Promise<void>;
@@ -554,6 +556,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // ─── Initiatives ──────────────────────────────────────────────────────────
+  const createInitiative = async (data: CreateInitiativeDto): Promise<Initiative> => {
+    const created = await InitiativesController.create(data);
+    setInitiatives(prev => {
+      const next = [created, ...prev];
+      return [...next].sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return (new Date(b.createdAt || 0).getTime()) - (new Date(a.createdAt || 0).getTime());
+      });
+    });
+    return created;
+  };
+
   const updateInitiative = async (id: string, partial: Partial<Initiative>) => {
     await InitiativesController.update(id, partial as any);
     setInitiatives(prev => prev.map(init => init.id === id ? { ...init, ...partial } : init));
@@ -675,6 +690,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         replyComment,
         reportComment,
         deleteComment,
+        createInitiative,
         updateInitiative,
         togglePinInitiative,
         createUserAccount,

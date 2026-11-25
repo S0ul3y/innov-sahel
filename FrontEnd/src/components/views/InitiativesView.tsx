@@ -9,14 +9,12 @@ import {
   Clock, 
   ChevronRight,
   PlusCircle,
-  Pin,
-  PinOff
+  Pin
 } from 'lucide-react';
 import { getMediaUrl, DEFAULT_PUBLICATION_COVERS } from '../../utils/media.utils';
 
 export const InitiativesView: React.FC = () => {
-  const { initiatives, communes, openInitiativeById, currentUserRole, setActiveModal, togglePinInitiative } = useApp();
-  const [pinningId, setPinningId] = useState<string | null>(null);
+  const { initiatives, communes, openInitiativeById, currentUserRole, setActiveModal } = useApp();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCommuneFilter, setSelectedCommuneFilter] = useState<string>('all');
@@ -24,18 +22,6 @@ export const InitiativesView: React.FC = () => {
 
   // Extract unique domains
   const allDomains = Array.from(new Set(initiatives.map(i => i.domain)));
-
-  const handleTogglePin = async (e: React.MouseEvent, initiativeId: string) => {
-    e.stopPropagation();
-    try {
-      setPinningId(initiativeId);
-      await togglePinInitiative(initiativeId);
-    } catch (err) {
-      console.error('Erreur lors de l\'épinglage:', err);
-    } finally {
-      setPinningId(null);
-    }
-  };
 
   const filteredInitiatives = initiatives.filter(init => {
     const matchesSearch = init.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,27 +182,6 @@ export const InitiativesView: React.FC = () => {
                       <Pin className="w-3 h-3 fill-current rotate-45 text-[#FADB58]" />
                       <span>À la une / Épinglée</span>
                     </div>
-                  )}
-
-                  {/* Bouton d'action Épingler (réservé aux admins) */}
-                  {(currentUserRole === 'admin' || currentUserRole === 'super_admin') && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleTogglePin(e, init.id)}
-                      disabled={pinningId === init.id}
-                      title={init.isPinned ? "Désépingler cette initiative" : "Épingler cette initiative en premier"}
-                      className={`absolute top-3 right-3 z-20 p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer shadow-md ${
-                        init.isPinned
-                          ? 'bg-[#08233C]/90 text-[#FADB58] hover:bg-red-600 hover:text-white'
-                          : 'bg-white/90 text-slate-700 hover:bg-[#38B6FF] hover:text-white'
-                      }`}
-                    >
-                      {init.isPinned ? (
-                        <Pin className="w-4 h-4 fill-current rotate-45" />
-                      ) : (
-                        <Pin className="w-4 h-4" />
-                      )}
-                    </button>
                   )}
 
                   {/* Cover */}
