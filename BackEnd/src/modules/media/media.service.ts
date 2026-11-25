@@ -1,3 +1,4 @@
+import 'multer';
 import {
   Injectable, BadRequestException, NotFoundException, Logger,
 } from '@nestjs/common';

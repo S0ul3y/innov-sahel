@@ -1,3 +1,4 @@
+import 'multer';
 import {
   Controller, Post, Get, Delete, Param,
   UseGuards, UseInterceptors, UploadedFile, UploadedFiles,
