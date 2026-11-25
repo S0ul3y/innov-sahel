@@ -485,11 +485,11 @@ export const AdminPorteursTab: React.FC = () => {
 
       {/* Modal 1: Create Porteur */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col my-auto animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#08233C] text-[#38B6FF] flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-2xl bg-[#08233C] text-[#38B6FF] flex items-center justify-center font-bold flex-shrink-0">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
@@ -498,14 +498,16 @@ export const AdminPorteursTab: React.FC = () => {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer flex-shrink-0 transition-colors"
+                title="Fermer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateSubmit} className="flex-1 overflow-y-auto custom-scrollbar py-4 pr-1 sm:pr-2 space-y-4 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">
                   Nom complet & Prénom <span className="text-red-500">*</span>
@@ -667,7 +669,7 @@ export const AdminPorteursTab: React.FC = () => {
                 />
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-2.5 border-t border-slate-100">
+              <div className="pt-4 flex items-center justify-end gap-2.5 border-t border-slate-100 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
@@ -691,11 +693,11 @@ export const AdminPorteursTab: React.FC = () => {
 
       {/* Modal 2: Edit Porteur */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col my-auto animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#EFF8FF] text-[#0B3B60] flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-2xl bg-[#EFF8FF] text-[#0B3B60] flex items-center justify-center font-bold flex-shrink-0">
                   <Edit3 className="w-5 h-5 text-[#38B6FF]" />
                 </div>
                 <div>
@@ -704,14 +706,16 @@ export const AdminPorteursTab: React.FC = () => {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setEditingUser(null)}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer flex-shrink-0 transition-colors"
+                title="Fermer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto custom-scrollbar py-4 pr-1 sm:pr-2 space-y-4 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Nom complet</label>
                 <input
@@ -768,7 +772,7 @@ export const AdminPorteursTab: React.FC = () => {
                 />
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-2.5 border-t border-slate-100">
+              <div className="pt-4 flex items-center justify-end gap-2.5 border-t border-slate-100 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditingUser(null)}
