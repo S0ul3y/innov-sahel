@@ -18,8 +18,8 @@ export class MediaAssetEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /** Nom du fichier optimisé (uuid.webp) — sans chemin */
-  @Column()
+  /** Nom du fichier optimisé (uuid.webp) ou URL complète Cloudinary */
+  @Column({ length: 500 })
   filename: string;
 
   /** Nom original fourni par le navigateur (conservé pour info) */
@@ -41,8 +41,8 @@ export class MediaAssetEntity {
   @Column({ default: 0 })
   height: number;
 
-  /** Nom du fichier miniature (null si non générée) */
-  @Column({ nullable: true })
+  /** Nom du fichier miniature (null si non générée) ou URL complète Cloudinary */
+  @Column({ length: 500, nullable: true })
   thumbnailFilename: string;
 
   @Column({ default: 0 })

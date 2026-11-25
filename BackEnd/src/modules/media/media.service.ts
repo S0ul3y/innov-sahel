@@ -9,6 +9,7 @@ const sharp = require('sharp');
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB avant traitement
@@ -50,13 +51,58 @@ export interface ProcessedMedia {
 @Injectable()
 export class MediaService {
   private readonly logger = new Logger(MediaService.name);
+  private isCloudinaryConfigured = false;
 
   constructor(
     @InjectRepository(MediaAssetEntity)
     private readonly repo: Repository<MediaAssetEntity>,
   ) {
-    // S'assurer que les dossiers existent au démarrage
+    this.initCloudinary();
+    // S'assurer que les dossiers locaux existent (utilisé si Cloudinary n'est pas actif)
     this.ensureDirectories();
+  }
+
+  // ─── Initialisation Cloudinary ─────────────────────────────────────────────
+  private initCloudinary(): void {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (cloudName && apiKey && apiSecret) {
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true,
+      });
+      this.isCloudinaryConfigured = true;
+      this.logger.log(`☁️ Cloudinary activé avec succès (cloud: ${cloudName})`);
+    } else {
+      this.logger.warn('📁 Cloudinary non configuré : stockage local actif (uploads/Images)');
+    }
+  }
+
+  // ─── Téléversement d'un Buffer vers Cloudinary ─────────────────────────────
+  private uploadBufferToCloudinary(
+    buffer: Buffer,
+    folder: string,
+    publicId: string,
+  ): Promise<UploadApiResponse> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: `innovsahel/${folder}`,
+          public_id: publicId,
+          resource_type: 'image',
+          format: 'webp',
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result!);
+        },
+      );
+      uploadStream.end(buffer);
+    });
   }
 
   // ─── Validation magic bytes ────────────────────────────────────────────────
@@ -141,25 +187,62 @@ export class MediaService {
       thumbMeta = await sharp(thumbBuffer).metadata();
     }
 
-    // 6. Écriture sur le disque
-    fs.writeFileSync(optimizedPath, optimizedBuffer);
-    if (thumbBuffer && thumbnailPath) {
-      fs.writeFileSync(thumbnailPath, thumbBuffer);
-    }
+    // 6. Stockage : Cloudinary (production ou local configuré) OU Disque local (fallback)
+    let finalUrl: string;
+    let finalThumbUrl: string | null = null;
+    let finalFilename = filename;
+    let finalThumbFilename = thumbnailFilename;
 
-    this.logger.log(
-      `Image traitée : ${filename} (${(optimizedBuffer.length / 1024).toFixed(0)}KB WebP depuis ${file.originalname})`,
-    );
+    if (this.isCloudinaryConfigured) {
+      try {
+        const baseName = path.parse(filename).name;
+        const uploadRes = await this.uploadBufferToCloudinary(optimizedBuffer, 'optimized', baseName);
+        finalUrl = uploadRes.secure_url;
+        finalFilename = uploadRes.secure_url;
+
+        if (thumbBuffer && thumbnailFilename) {
+          const thumbBaseName = path.parse(thumbnailFilename).name;
+          const thumbRes = await this.uploadBufferToCloudinary(thumbBuffer, 'thumbnails', thumbBaseName);
+          finalThumbUrl = thumbRes.secure_url;
+          finalThumbFilename = thumbRes.secure_url;
+        }
+
+        this.logger.log(
+          `☁️ Image envoyée sur Cloudinary : ${finalUrl} (depuis ${file.originalname})`,
+        );
+      } catch (err: any) {
+        this.logger.error(`Erreur upload Cloudinary : ${err?.message || err}. Basculement sur stockage local.`);
+        // Fallback local en cas d'erreur réseau ponctuelle
+        fs.writeFileSync(optimizedPath, optimizedBuffer);
+        if (thumbBuffer && thumbnailPath) {
+          fs.writeFileSync(thumbnailPath, thumbBuffer);
+        }
+        finalUrl = `/images/optimized/${filename}`;
+        finalThumbUrl = thumbnailFilename ? `/images/thumbnails/${thumbnailFilename}` : null;
+      }
+    } else {
+      // Stockage local
+      fs.writeFileSync(optimizedPath, optimizedBuffer);
+      if (thumbBuffer && thumbnailPath) {
+        fs.writeFileSync(thumbnailPath, thumbBuffer);
+      }
+      finalUrl = `/images/optimized/${filename}`;
+      finalThumbUrl = thumbnailFilename ? `/images/thumbnails/${thumbnailFilename}` : null;
+
+      this.logger.log(
+        `Image locale traitée : ${filename} (${(optimizedBuffer.length / 1024).toFixed(0)}KB WebP depuis ${file.originalname})`,
+      );
+    }
 
     // 7. Persistance en base de données
     const asset = this.repo.create({
-      filename,
+      filename: finalFilename,
       originalName: file.originalname,
       mimeType: 'image/webp',
       size: optimizedBuffer.length,
       width: metadata.width || 0,
       height: metadata.height || 0,
-      thumbnailFilename: thumbnailFilename || null,
+      thumbnailFilename: finalThumbFilename || null,
       thumbnailSize: thumbBuffer?.length || 0,
       linkedEntityType: options.linkedEntityType || null,
       linkedEntityId: options.linkedEntityId || null,
@@ -171,8 +254,8 @@ export class MediaService {
 
     return {
       asset: saved,
-      url: `/images/optimized/${filename}`,
-      thumbnailUrl: thumbnailFilename ? `/images/thumbnails/${thumbnailFilename}` : null,
+      url: finalUrl,
+      thumbnailUrl: finalThumbUrl,
     };
   }
 
@@ -211,13 +294,32 @@ export class MediaService {
     const asset = await this.repo.findOne({ where: { id } });
     if (!asset) throw new NotFoundException('Média introuvable.');
 
-    // Suppression des fichiers disque (silencieux si déjà absents)
-    const optimizedPath = path.join(OPTIMIZED_DIR, asset.filename);
-    if (fs.existsSync(optimizedPath)) fs.unlinkSync(optimizedPath);
+    // Si c'est une image Cloudinary
+    if (this.isCloudinaryConfigured && asset.filename.includes('cloudinary.com')) {
+      try {
+        // Extraction du public_id depuis l'URL Cloudinary (ex: innovsahel/optimized/uuid)
+        const match = asset.filename.match(/innovsahel\/(?:optimized|thumbnails)\/[^.]+/);
+        if (match) {
+          await cloudinary.uploader.destroy(match[0]);
+        }
+        if (asset.thumbnailFilename) {
+          const thumbMatch = asset.thumbnailFilename.match(/innovsahel\/(?:optimized|thumbnails)\/[^.]+/);
+          if (thumbMatch) {
+            await cloudinary.uploader.destroy(thumbMatch[0]);
+          }
+        }
+      } catch (err: any) {
+        this.logger.warn(`Impossible de supprimer de Cloudinary : ${err?.message || err}`);
+      }
+    } else {
+      // Suppression des fichiers disque locaux (silencieux si déjà absents)
+      const optimizedPath = path.join(OPTIMIZED_DIR, asset.filename);
+      if (fs.existsSync(optimizedPath)) fs.unlinkSync(optimizedPath);
 
-    if (asset.thumbnailFilename) {
-      const thumbPath = path.join(THUMBNAILS_DIR, asset.thumbnailFilename);
-      if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+      if (asset.thumbnailFilename) {
+        const thumbPath = path.join(THUMBNAILS_DIR, asset.thumbnailFilename);
+        if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+      }
     }
 
     await this.repo.remove(asset);
